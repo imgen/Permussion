@@ -19,7 +19,7 @@ for (int i = 0; i < 1; i++)
 {
     (psId1s, psId2s, count) = Profile(
         "Calculate user permission checks",
-        () => PermissionedWithSubsetCheck.CalculatePermissionChecksFinalTouch(
+        () => PermissionedWithSubsetCheck.CalculatePermissionChecksParallel(
             userPermissionSetMap,
             permissionGroupOccuranceMap,
             maxPsId
