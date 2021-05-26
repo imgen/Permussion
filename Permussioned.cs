@@ -13,52 +13,6 @@ namespace Permussion
 {
     public static class Permussioned
     {
-        public static ValueTask<PermissionSetGroup[]> LoadPermissionSetGroups()
-        {
-            return JsonSerializer.DeserializeAsync<PermissionSetGroup[]>(
-                File.OpenRead("PermissionSetGroups.json")
-            );
-        }
-
-        public static (
-            PermissionSetMap UserPermissionSetMap,
-            PermissionGroupOccuranceMap PermissionGroupOccuranceMap,
-            short MaxPermissionSetId)
-            BuildPermissionMaps(PermissionSetGroup[] permissionSetGroups)
-        {
-            PermissionSetMap userPermissionSetMap = new();
-            PermissionGroupOccuranceMap permissionGroupOccuranceMap = new();
-            int i = -1;
-            int psgCount = permissionSetGroups.Length;
-            while (++i < psgCount)
-            {
-                var (psId, pgId, isUserPermissionSet) = permissionSetGroups[i];
-                if (userPermissionSetMap.TryGetValue(psId, out var ps))
-                {
-                    ps.Add(pgId);
-                }
-                else if (isUserPermissionSet)
-                {
-                    userPermissionSetMap[psId] = new() { pgId };
-                }
-
-                if (permissionGroupOccuranceMap.TryGetValue(pgId, out var psIds))
-                {
-                    psIds.Add(psId);
-                }
-                else
-                {
-                    permissionGroupOccuranceMap[pgId] = new() { psId };
-                }
-            }
-
-            return (
-                userPermissionSetMap,
-                permissionGroupOccuranceMap,
-                permissionSetGroups[permissionSetGroups.Length - 1].PermissionSetId
-            );
-        }
-
         public static (PermissionCheck[] permissionChecks, int count) CalculatePermissionChecks(
             PermissionSetMap permissionSetMap,
             PermissionGroupOccuranceMap permissionGroupOccuranceMap)
