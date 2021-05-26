@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using PermissionSetMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 using PermissionGroupOccuranceMap = System.Collections.Generic.Dictionary<short,
     System.Collections.Generic.List<short>>;
+using System;
 
 namespace Permussion
 {
-    public class PermissionedWithSubsetCheck
+    public class PermussionedWithSubsetCheck
     {
         public static (short[] psId1s, short[] psId2s, int count)
             CalculatePermissionChecksParallel(
@@ -132,12 +133,11 @@ namespace Permussion
                     {
                         var pgOccurances = permissionGroupOccuranceMap[pgIds[0]];
                         var pgOccurancesCount = pgOccurances.Count;
+                        Array.Fill(psId1s, psId, index + 1, pgOccurancesCount);
                         int j = -1;
                         while (++j < pgOccurancesCount)
                         {
-                            short psId2 = pgOccurances[j];
-                            psId1s[++index] = psId;
-                            psId2s[index] = psId2;
+                            psId2s[++index] = pgOccurances[j];
                         }
                     }
                     else
@@ -170,11 +170,11 @@ namespace Permussion
                             (prevIntersection, intersection) = (intersection, prevIntersection);
                         }
 
-                        foreach (var psId2 in prevIntersection)
-                        {
-                            psId1s[++index] = psId;
-                            psId2s[index] = psId2;
-                        }
+                        var matches = prevIntersection.ToArray();
+                        int matchCount = matches.Length;
+                        Array.Fill(psId1s, psId, index + 1, matchCount);
+                        Array.Copy(matches, 0, psId2s, index + 1, matchCount);
+                        index += matchCount;
 
                         prevIntersection.Clear();
                     }
