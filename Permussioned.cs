@@ -1,13 +1,13 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
-using PermissionSetMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 using PermissionGroupOccuranceMap = System.Collections.Generic.Dictionary<short,
     System.Collections.Generic.List<short>>;
-using System.Linq;
-using System.Threading;
-using System.Collections.Generic;
-using System;
+using PermissionSetMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 
 namespace Permussion
 {
@@ -30,7 +30,7 @@ namespace Permussion
             PermissionGroupOccuranceMap permissionGroupOccuranceMap = new();
             int i = -1;
             int psgCount = permissionSetGroups.Length;
-            while(++i < psgCount)
+            while (++i < psgCount)
             {
                 var (psId, pgId, isUserPermissionSet) = permissionSetGroups[i];
                 if (userPermissionSetMap.TryGetValue(psId, out var ps))
@@ -53,7 +53,7 @@ namespace Permussion
             }
 
             return (
-                userPermissionSetMap, 
+                userPermissionSetMap,
                 permissionGroupOccuranceMap,
                 permissionSetGroups[permissionSetGroups.Length - 1].PermissionSetId
             );
@@ -82,9 +82,9 @@ namespace Permussion
                 .Sum(x => permissionGroupOccuranceMap[x].Count);
             var permissionChecks = new PermissionCheck[totalPermutationCount];
             int index = 0;
-            foreach(var (psId, pgIds) in permissionSetMap)
+            foreach (var (psId, pgIds) in permissionSetMap)
             {
-                foreach(var psId2 in
+                foreach (var psId2 in
                     pgIds.SelectMany(x => permissionGroupOccuranceMap[x])
                     .Distinct())
                 {
@@ -125,7 +125,7 @@ namespace Permussion
             return (permissionChecks, index + 1);
         }
 
-        public static (short[] psId1s, short[] psId2s, int count) 
+        public static (short[] psId1s, short[] psId2s, int count)
             CalculatePermissionChecksFinalTouch(
             PermissionSetMap permissionSetMap,
             PermissionGroupOccuranceMap permissionGroupOccuranceMap,
@@ -176,7 +176,7 @@ namespace Permussion
                     }
                 );
 
-                return (psId1s, psId2s, index + 1); 
+                return (psId1s, psId2s, index + 1);
             }
         }
 
@@ -243,7 +243,7 @@ namespace Permussion
                         for (int k = 0; k < permissionChecksCount; k++)
                         {
                             psId1s[oldStartIndex + k] = psId;
-                            while(hashSet[l] == 0)
+                            while (hashSet[l] == 0)
                             {
                                 l++;
                             }
@@ -330,16 +330,16 @@ namespace Permussion
                         var oldStartIndex = newStartIndex - permissionChecksCount;
 
                         int k = -1;
-                        while(++k < permissionChecksCount)
+                        while (++k < permissionChecksCount)
                         {
                             psId1s[oldStartIndex + k] = psId;
                         }
 
                         Array.Copy(
-                                caches, 
-                                chunkStartIndex, 
-                                psId2s, 
-                                oldStartIndex, 
+                                caches,
+                                chunkStartIndex,
+                                psId2s,
+                                oldStartIndex,
                                 permissionChecksCount
                             );
                     }
@@ -382,7 +382,7 @@ namespace Permussion
                     (psId, _, psIndex) =>
                     {
                         int chunkStartIndex = (int)psIndex * chunkSize;
-                        
+
                         int permissionChecksCount = 0;
                         var pgIds = permissionSetMap[psId];
                         int i = -1;
@@ -406,9 +406,9 @@ namespace Permussion
                         int newStartIndex = Interlocked.Add(ref startIndex, permissionChecksCount);
                         var oldStartIndex = newStartIndex - permissionChecksCount;
 
-                        Array.Fill(psId1s, 
-                            psId, 
-                            oldStartIndex, 
+                        Array.Fill(psId1s,
+                            psId,
+                            oldStartIndex,
                             permissionChecksCount);
 
                         Array.Copy(
@@ -524,7 +524,7 @@ namespace Permussion
             int totalPermutationCount = 0;
             int psCount = psIds.Length;
             // startIndexes will indicate the start index of the chunk of memory
-            // that exclusively belongs to a particular permission set while doing 
+            // that exclusively belongs to a particular permission set while doing
             // parallel processing
             int[] startIndexes = new int[psCount + 1];
             startIndexes[0] = 0;
@@ -533,14 +533,14 @@ namespace Permussion
             {
                 var pgIds = permissionSetMap[psIds[i]];
                 totalPermutationCount += permissionSetMap[psIds[i]]
-                    .Sum(x => permissionGroupOccuranceMap[x].Count) + 
+                    .Sum(x => permissionGroupOccuranceMap[x].Count) +
                     1 - pgIds.Count;
                 startIndexes[i + 1] = totalPermutationCount;
             }
             int count = 0;
             var permissionChecks = new PermissionCheck[totalPermutationCount];
             Parallel.ForEach(
-                psIds, 
+                psIds,
                 new ParallelOptions
                 {
                     MaxDegreeOfParallelism = 100

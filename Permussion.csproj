@@ -11,10 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="JM.LinqFaster" Version="1.1.2" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="PermissionSetGroups.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
