@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Permussion.exe" />
+    <None Remove="Permussion.zip" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JM.LinqFaster" Version="1.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="PermissionSetGroups.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
