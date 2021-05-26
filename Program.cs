@@ -23,7 +23,7 @@ for (int i = 0; i < 100; i++)
 {
     (_, _, count) = Profile(
         "Calculate user permission checks",
-        () => PermussionedWithSubsetCheck.CalculatePermissionChecks(
+        () => PermussionedWithSubsetCheck.CalculatePermissionChecksParallel500us(
             userPermissionSetMapWithArray,
             permissionGroupOccuranceMapWithArray,
             maxPsId

@@ -117,10 +117,10 @@ namespace Permussion
                         .Min();
                     totalPermutationCount += maxPossibleSubsetMatchCount;
                 }
-                int index = -1;
                 var psId1s = new short[totalPermutationCount];
                 var psId2s = new short[totalPermutationCount];
 
+                int startIndex = 0;
                 Parallel.ForEach(
                     psIds,
                     psId =>
@@ -131,14 +131,10 @@ namespace Permussion
                         {
                             var pgOccurances = permissionGroupOccuranceMap[pgIds[0]];
                             var pgOccurancesCount = pgOccurances.Length;
-                            int j = -1;
-                            while (++j < pgOccurancesCount)
-                            {
-                                short psId2 = pgOccurances[j];
-                                var index2 = Interlocked.Increment(ref index);
-                                psId1s[index2] = psId;
-                                psId2s[index2] = psId2;
-                            }
+                            int newStartIndex = Interlocked.Add(ref startIndex, pgOccurancesCount);
+                            var oldStartIndex = newStartIndex - pgOccurancesCount;
+                            Array.Fill(psId1s, psId, oldStartIndex, pgOccurancesCount);
+                            Array.Copy(pgOccurances, 0, psId2s, oldStartIndex, pgOccurancesCount);
                         }
                         else
                         {
@@ -171,17 +167,18 @@ namespace Permussion
                                 (prevIntersection, intersection) = (intersection, prevIntersection);
                             }
 
-                            foreach (var psId2 in prevIntersection)
-                            {
-                                var index2 = Interlocked.Increment(ref index);
-                                psId1s[index2] = psId;
-                                psId2s[index2] = psId2;
-                            }
+                            var matches = prevIntersection.ToArray();
+                            int matchCount = matches.Length;
+
+                            int newStartIndex = Interlocked.Add(ref startIndex, matchCount);
+                            var oldStartIndex = newStartIndex - matchCount;
+                            Array.Fill(psId1s, psId, oldStartIndex, matchCount);
+                            Array.Copy(matches, 0, psId2s, oldStartIndex, matchCount);
                         }
                     }
                 );
 
-                return (psId1s, psId2s, index + 1);
+                return (psId1s, psId2s, startIndex);
             }
         }
 
