@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using PermissionGroupOccuranceMap = System.Collections.Generic.Dictionary<short,
@@ -15,7 +13,8 @@ namespace Permussion
     {
         public static (PermissionCheck[] permissionChecks, int count) CalculatePermissionChecks(
             PermissionSetMap permissionSetMap,
-            PermissionGroupOccuranceMap permissionGroupOccuranceMap)
+            PermissionGroupOccuranceMap permissionGroupOccuranceMap,
+            int maxPsId)
         {
             var permissionChecks = permissionSetMap.SelectMany(
                 pair => pair.Value

@@ -18,14 +18,12 @@ var userPermissionSetMapWithArray = userPermissionSetMap
 var permissionGroupOccuranceMapWithArray = permissionGroupOccuranceMap
     .ToDictionary(x => x.Key, x => x.Value.ToArray());
 var bestTime = TimeSpan.FromDays(1);
-short[] psId1s = null;
-short[] psId2s = null;
 int count = 0;
 for (int i = 0; i < 100; i++)
 {
-    (psId1s, psId2s, count) = Profile(
+    (_, _, count) = Profile(
         "Calculate user permission checks",
-        () => OneMsPermussioned.CalculatePermissionChecksFinalFinishUpper(
+        () => PermussionedWithSubsetCheck.CalculatePermissionChecks(
             userPermissionSetMapWithArray,
             permissionGroupOccuranceMapWithArray,
             maxPsId
