@@ -1,9 +1,11 @@
 ﻿using System.Threading.Tasks;
+using System.Text.Json;
+using System.IO;
+
 using PermissionSetMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 using PermissionGroupOccuranceMap = System.Collections.Generic.Dictionary<short,
     System.Collections.Generic.List<short>>;
-using System.Text.Json;
-using System.IO;
+using System;
 
 namespace Permussion
 {
@@ -29,9 +31,12 @@ namespace Permussion
             while (++i < psgCount)
             {
                 var (psId, pgId, isUserPermissionSet) = permissionSetGroups[i];
-                if (userPermissionSetMap.TryGetValue(psId, out var ps))
+                if (userPermissionSetMap.TryGetValue(psId, out var pgIds))
                 {
-                    ps.Add(pgId);
+                    if (pgIds.Contains(pgId) is false)
+                    {
+                        pgIds.Add(pgId);
+                    }
                 }
                 else if (isUserPermissionSet)
                 {
