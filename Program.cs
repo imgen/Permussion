@@ -2,6 +2,7 @@
 using static Permussion.MapBuilder;
 using System;
 using Permussion;
+using System.Linq;
 
 var permissionSetGroups = await ProfileAsync(
     "Load permission set groups",
