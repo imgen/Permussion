@@ -121,6 +121,8 @@ namespace Permussion
                 int index = -1;
                 var psId1s = new short[totalPermutationCount];
                 var psId2s = new short[totalPermutationCount];
+                var (prevIntersection, intersection) =
+                            (new HashSet<short>(), new HashSet<short>());
 
                 foreach (var psId in psIds)
                 {
@@ -134,15 +136,13 @@ namespace Permussion
                         while (++j < pgOccurancesCount)
                         {
                             short psId2 = pgOccurances[j];
-                            var index2 = Interlocked.Increment(ref index);
-                            psId1s[index2] = psId;
-                            psId2s[index2] = psId2;
+                            psId1s[++index] = psId;
+                            psId2s[index] = psId2;
                         }
                     }
                     else
                     {
-                        var (prevIntersection, intersection) =
-                            (new HashSet<short>(), new HashSet<short>());
+
                         var pgOccurances = permissionGroupOccuranceMap[pgIds[0]];
                         var pgOccurancesCount = pgOccurances.Count;
                         int j = -1;
@@ -172,10 +172,11 @@ namespace Permussion
 
                         foreach (var psId2 in prevIntersection)
                         {
-                            var index2 = Interlocked.Increment(ref index);
-                            psId1s[index2] = psId;
-                            psId2s[index2] = psId2;
+                            psId1s[++index] = psId;
+                            psId2s[index] = psId2;
                         }
+
+                        prevIntersection.Clear();
                     }
                 }
 
