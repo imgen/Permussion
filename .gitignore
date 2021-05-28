@@ -265,9 +265,5 @@ Gravity.Web.log.txt
 **/.idea/config/applicationhost.config
 *.sln.startup.json
 /cmf.exe
-*.v2
-.vs/Permussion/v16/.suo
-.vs/Permussion/v16/.suo
-.vs/Permussion/v16/.suo
+.vs/Permussion/v16/*.suo
 .vs/Permussion/DesignTimeBuild/.dtbcache.v2
-.vs/Permussion/v16/.suo
