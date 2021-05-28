@@ -162,18 +162,23 @@ namespace Permussion
                                         intersection.Add(psId2);
                                     }
                                 }
-
-                                prevIntersection.Clear();
-                                (prevIntersection, intersection) = (intersection, prevIntersection);
+                                if (i < pgCount - 1)
+                                {
+                                    prevIntersection.Clear();
+                                    (prevIntersection, intersection) = (intersection, prevIntersection);
+                                }
                             }
 
-                            var matches = prevIntersection.ToArray();
-                            int matchCount = matches.Length;
+                            int matchCount = intersection.Count;
 
                             int newStartIndex = Interlocked.Add(ref startIndex, matchCount);
                             var oldStartIndex = newStartIndex - matchCount;
                             Array.Fill(psId1s, psId, oldStartIndex, matchCount);
-                            Array.Copy(matches, 0, psId2s, oldStartIndex, matchCount);
+                            i = 0;
+                            foreach (var psId2 in intersection)
+                            {
+                                psId2s[i++] = psId2;
+                            }
                         }
                     }
                 );
