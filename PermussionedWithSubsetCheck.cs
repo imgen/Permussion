@@ -177,7 +177,8 @@ namespace Permussion
                             i = 0;
                             foreach (var psId2 in intersection)
                             {
-                                psId2s[i++] = psId2;
+                                psId2s[oldStartIndex + i] = psId2;
+                                i++;
                             }
                         }
                     }
