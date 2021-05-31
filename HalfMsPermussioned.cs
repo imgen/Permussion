@@ -165,14 +165,14 @@ namespace Permussion
 
                             int i = 0;
                             int matchCount = pgOccurancesCount;
-                            while (++i < pgCount)
+                            while (++i < pgCount && matchCount > 1)
                             {
                                 pgOccurances = permissionGroupOccuranceMap[pgIds[i]];
                                 int j = 0;
                                 while (j < matchCount)
                                 {
                                     var psId2 = intersection[j];
-                                    if (Array.BinarySearch(pgOccurances, psId2) < 0)
+                                    if (Utils.BinarySearch(pgOccurances, psId2) < 0)
                                     {
                                         intersection[j] = intersection[matchCount - 1];
                                         matchCount--;
@@ -195,6 +195,5 @@ namespace Permussion
                 return (psId1s, psId2s, startIndex);
             }
         }
-
     }
 }
