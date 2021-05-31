@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using PermissionSetMap = System.Collections.Generic.Dictionary<short, short[]>;
 using PermissionGroupOccuranceMap = System.Collections.Generic.Dictionary<short, short[]>;
-using System.Globalization;
 
 namespace Permussion
 {
@@ -93,7 +92,6 @@ namespace Permussion
                             }
 
                             int matchCount = intersection.Count;
-
                             int newStartIndex = Interlocked.Add(ref startIndex, matchCount);
                             var oldStartIndex = newStartIndex - matchCount;
                             Array.Fill(psId1s, psId, oldStartIndex, matchCount);
@@ -166,23 +164,22 @@ namespace Permussion
                             Array.Copy(pgOccurances, intersection, pgOccurancesCount);
 
                             int i = 0;
-                            int intersectionLength = pgOccurancesCount;
-                            int matchCount = intersectionLength;
+                            int matchCount = pgOccurancesCount;
                             while (++i < pgCount)
                             {
                                 pgOccurances = permissionGroupOccuranceMap[pgIds[i]];
-                                int j = -1;
-                                while (++j < intersectionLength)
+                                int j = 0;
+                                while (j < matchCount)
                                 {
                                     var psId2 = intersection[j];
-                                    if (psId2 == 0)
-                                    {
-                                        continue;
-                                    }
                                     if (Array.BinarySearch(pgOccurances, psId2) < 0)
                                     {
-                                        intersection[j] = 0;
+                                        intersection[j] = intersection[matchCount - 1];
                                         matchCount--;
+                                    }
+                                    else
+                                    {
+                                        j++;
                                     }
                                 }
                             }
@@ -190,17 +187,7 @@ namespace Permussion
                             int newStartIndex = Interlocked.Add(ref startIndex, matchCount);
                             var oldStartIndex = newStartIndex - matchCount;
                             Array.Fill(psId1s, psId, oldStartIndex, matchCount);
-                            i = -1;
-                            int k = 0;
-                            while (++i < intersectionLength &&
-                                k < matchCount)
-                            {
-                                var psId2 = intersection[i];
-                                if (psId2 > 0)
-                                {
-                                    psId2s[oldStartIndex + k++] = psId2;
-                                }
-                            }
+                            Array.Copy(intersection, 0, psId2s, oldStartIndex, matchCount);
                         }
                     }
                 );
