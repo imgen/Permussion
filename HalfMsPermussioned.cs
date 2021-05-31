@@ -84,6 +84,12 @@ namespace Permussion
                                         intersection.Add(psId2);
                                     }
                                 }
+
+                                if (intersection.Count == 1)
+                                {
+                                    break;
+                                }
+
                                 if (i < pgCount - 1)
                                 {
                                     prevIntersection.Clear();
