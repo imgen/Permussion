@@ -171,7 +171,7 @@ namespace Permussion
 
                             int i = 0;
                             int matchCount = pgOccurancesCount;
-                            while (++i < pgCount && matchCount > 1)
+                            while (matchCount > 1 && ++i < pgCount)
                             {
                                 pgOccurances = permissionGroupOccuranceMap[pgIds[i]];
                                 int j = 0;
