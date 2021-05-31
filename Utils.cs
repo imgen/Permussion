@@ -15,7 +15,6 @@
                     min = mid + 1;
                 else
                     max = mid - 1;
-                
             } while (min <= max);
             return -1;
         }
