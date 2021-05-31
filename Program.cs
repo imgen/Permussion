@@ -21,11 +21,11 @@ var bestTime = TimeSpan.FromDays(1);
 int count = 0;
 for (int i = 0; i < 100; i++)
 {
-    (_, count) = Profile(
+    (_, _, count) = Profile(
         "Calculate user permission checks",
-        () => Permussioned.CalculatePermissionChecks(
-            userPermissionSetMap,
-            permissionGroupOccuranceMap,
+        () => HalfMsPermussioned.CalculatePermissionChecksParallel500us(
+            userPermissionSetMapWithArray,
+            permissionGroupOccuranceMapWithArray,
             maxPsId
         ),
         (timeTaken, message) =>
