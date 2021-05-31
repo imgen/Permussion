@@ -29,15 +29,23 @@ namespace Permussion
                     int maxPossibleSubsetMatchCount =
                         permissionGroupOccuranceMap[pgIds[0]].Length;
                     int j = 0;
+                    int minPgOccuranceCountIndex = 0;
                     while (++j < pgCount)
                     {
                         var pgOccuranceCount = permissionGroupOccuranceMap[pgIds[j]].Length;
                         if (pgOccuranceCount < maxPossibleSubsetMatchCount)
                         {
                             maxPossibleSubsetMatchCount = pgOccuranceCount;
+                            minPgOccuranceCountIndex = j;
                         }
                     }
                     totalPermutationCount += maxPossibleSubsetMatchCount;
+                    if (minPgOccuranceCountIndex > 0)
+                    {
+                        var temp = pgIds[0];
+                        pgIds[0] = pgIds[minPgOccuranceCountIndex];
+                        pgIds[minPgOccuranceCountIndex] = temp;
+                    }
                 }
                 var psId1s = new short[totalPermutationCount];
                 var psId2s = new short[totalPermutationCount];
