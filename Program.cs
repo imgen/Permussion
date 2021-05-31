@@ -23,7 +23,7 @@ for (int i = 0; i < 100; i++)
 {
     (_, _, count) = Profile(
         "Calculate user permission checks",
-        () => HalfMsPermussioned.CalculatePermissionChecksParallel500usSpanless(
+        () => HalfMsPermussioned.CalculatePermissionChecks(
             userPermissionSetMapWithArray,
             permissionGroupOccuranceMapWithArray,
             maxPsId

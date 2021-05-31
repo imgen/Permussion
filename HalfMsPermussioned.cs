@@ -12,7 +12,7 @@ namespace Permussion
     public static class HalfMsPermussioned
     {
         public static (short[] psId1s, short[] psId2s, int count)
-            CalculatePermissionChecksParallel500us(
+            CalculatePermissionChecks(
             PermissionSetMap permissionSetMap,
             PermissionGroupOccuranceMap permissionGroupOccuranceMap,
             int maxPsId)
@@ -60,8 +60,8 @@ namespace Permussion
                         }
                         else
                         {
-                            var (prevIntersection, intersection) =
-                                (new HashSet<short>(), new HashSet<short>());
+                            var prevIntersection = new HashSet<short>();
+                            var intersection = new HashSet<short>();
                             var pgOccurances = permissionGroupOccuranceMap[pgIds[0]];
                             var pgOccurancesCount = pgOccurances.Length;
                             int j = -1;
@@ -99,8 +99,7 @@ namespace Permussion
                             i = 0;
                             foreach (var psId2 in intersection)
                             {
-                                psId2s[oldStartIndex + i] = psId2;
-                                i++;
+                                psId2s[oldStartIndex + i++] = psId2;
                             }
                         }
                     }
@@ -299,13 +298,16 @@ namespace Permussion
                                     }
                                 }
 
-                                prevIntersection.Clear();
-                                var temp = prevIntersection;
-                                prevIntersection = intersection;
-                                intersection = temp;
+                                if (i < pgCount - 1)
+                                {
+                                    prevIntersection.Clear();
+                                    var temp = prevIntersection;
+                                    prevIntersection = intersection;
+                                    intersection = temp;
+                                }
                             }
 
-                            var matches = prevIntersection
+                            var matches = intersection
                                 .ToArray().Where(x => x is not 0)
                                 .ToArray();
                             int matchCount = matches.Length;
