@@ -11,6 +11,25 @@ namespace Permussion
 {
     public static class HalfMsPermussioned
     {
+        public static (PermissionCheck[], int count)
+            CalculatePermissionChecksLinq(
+            PermissionSetMap permissionSetMap,
+            PermissionGroupOccuranceMap permissionGroupOccuranceMap,
+            int maxPsId)
+        {
+            var permissionChecks = permissionSetMap.SelectMany(pair =>
+            {
+                var pgIds = pair.Value;
+                return pgIds.Skip(1).Aggregate(
+                        permissionGroupOccuranceMap[pgIds[0]],
+                        (intersection, pgId) =>
+                            intersection.Intersect(permissionGroupOccuranceMap[pgId]).ToArray()
+                    ).Select(x => new PermissionCheck(pair.Key, x));
+            }).ToArray();
+
+            return (permissionChecks, permissionChecks.Length);
+        }
+
         public static (short[] psId1s, short[] psId2s, int count)
             CalculatePermissionChecks(
             PermissionSetMap permissionSetMap,
