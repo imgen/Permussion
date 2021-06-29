@@ -19,9 +19,9 @@ var permissionGroupOccuranceMapWithArray = permissionGroupOccuranceMap
     .ToDictionary(x => x.Key, x => x.Value.ToArray());
 var bestTime = TimeSpan.FromDays(1);
 int count = 0;
-for (int i = 0; i < 100; i++)
+for (int i = 0; i < 10; i++)
 {
-    (_, _, count) = Profile(
+    (_, count) = Profile(
         "Calculate user permission checks",
         () => OneMsPermussioned.CalculatePermissionChecksFaster(
             userPermissionSetMapWithArray,
