@@ -5,7 +5,6 @@ using System.IO;
 using PermissionSetMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 using PermissionGroupOccuranceMap = System.Collections.Generic.Dictionary<short,
     System.Collections.Generic.List<short>>;
-using System;
 
 namespace Permussion
 {
@@ -33,10 +32,7 @@ namespace Permussion
                 var (psId, pgId, isUserPermissionSet) = permissionSetGroups[i];
                 if (userPermissionSetMap.TryGetValue(psId, out var pgIds))
                 {
-                    if (pgIds.Contains(pgId) is false)
-                    {
-                        pgIds.Add(pgId);
-                    }
+                    pgIds.Add(pgId);
                 }
                 else if (isUserPermissionSet)
                 {
@@ -45,17 +41,14 @@ namespace Permussion
 
                 if (permissionGroupOccuranceMap.TryGetValue(pgId, out var psIds))
                 {
-                    if (psIds.Contains(psId) is false)
-                    {
-                        psIds.Add(psId);
-                    }
+                    psIds.Add(psId);
                 }
                 else
                 {
                     permissionGroupOccuranceMap[pgId] = new() { psId };
                 }
             }
-
+            
             return (
                 userPermissionSetMap,
                 permissionGroupOccuranceMap,

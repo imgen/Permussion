@@ -19,9 +19,11 @@ var permissionGroupOccuranceMapWithArray = permissionGroupOccuranceMap
     .ToDictionary(x => x.Key, x => x.Value.ToArray());
 var bestTime = TimeSpan.FromDays(1);
 int count = 0;
-for (int i = 0; i < 10; i++)
+short[] psId1s, psId2s;
+bool doCountingOfMatches = true;
+for (int i = 0; i < 1; i++)
 {
-    (_, count) = Profile(
+    (psId1s, psId2s, count) = Profile(
         "Calculate user permission checks",
         () => OneMsPermussioned.CalculatePermissionChecksFaster(
             userPermissionSetMapWithArray,
@@ -34,6 +36,18 @@ for (int i = 0; i < 10; i++)
             Console.WriteLine(message);
         }
     );
+    if (doCountingOfMatches is false)
+    {
+        continue;
+    }
+    var counts = psId1s.Take(count).GroupBy(x => x)
+        .Select(x => x.Count()).ToArray();
+    var countOfMostMatches = counts.Max();
+    var countOfLeastMatches = counts.Min();
+    var averageMatchCount = counts.Average();
+    Console.WriteLine($"The max count of matches is {countOfMostMatches}");
+    Console.WriteLine($"The min count of matches is {countOfLeastMatches}");
+    Console.WriteLine($"The average count of matches is {averageMatchCount}");
 }
 Console.WriteLine($"Generated {count} user permission checks");
 Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)} to calculate the user permission checks");
