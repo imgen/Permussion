@@ -19,9 +19,8 @@ var permissionGroupOccuranceMapWithArray = permissionGroupOccuranceMap
     .ToDictionary(x => x.Key, x => x.Value.ToArray());
 var bestTime = TimeSpan.FromDays(1);
 int count = 0;
-short[] psId1s, psId2s;
-bool doCountingOfMatches = true;
-for (int i = 0; i < 1; i++)
+short[] psId1s = null, psId2s;
+for (int i = 0; i < 100; i++)
 {
     (psId1s, psId2s, count) = Profile(
         "Calculate user permission checks",
@@ -36,10 +35,11 @@ for (int i = 0; i < 1; i++)
             Console.WriteLine(message);
         }
     );
-    if (doCountingOfMatches is false)
-    {
-        continue;
-    }
+}
+
+bool doCountingOfMatches = true;
+if (doCountingOfMatches)
+{
     var counts = psId1s.Take(count).GroupBy(x => x)
         .Select(x => x.Count()).ToArray();
     var countOfMostMatches = counts.Max();

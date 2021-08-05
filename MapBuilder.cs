@@ -5,6 +5,8 @@ using System.IO;
 using PermissionSetMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 using PermissionGroupOccuranceMap = System.Collections.Generic.Dictionary<short,
     System.Collections.Generic.List<short>>;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Permussion
 {
@@ -52,8 +54,11 @@ namespace Permussion
             return (
                 userPermissionSetMap,
                 permissionGroupOccuranceMap,
-                permissionSetGroups[permissionSetGroups.Length - 1].PermissionSetId
+                permissionSetGroups[^1].PermissionSetId
             );
         }
+
+        static bool IsSorted<T>(List<T> list) => 
+            list.OrderBy(x => x).SequenceEqual(list);
     }
 }
