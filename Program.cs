@@ -8,14 +8,14 @@ var permissionSetGroups = await ProfileAsync(
     "Load permission set groups",
     LoadPermissionSetGroups
 );
-var (userPermissionSetMap, permissionGroupOccuranceMap, maxPsId) = Profile(
+var (userPermissionSetMap, permissionGroupOccurenceMap, maxPsId) = Profile(
     "Build permission maps",
     () => BuildPermissionMaps(permissionSetGroups)
 );
 
 var userPermissionSetMapWithArray = userPermissionSetMap
     .ToDictionary(x => x.Key, x => x.Value.ToArray());
-var permissionGroupOccuranceMapWithArray = permissionGroupOccuranceMap
+var permissionGroupOccurenceMapWithArray = permissionGroupOccurenceMap
     .ToDictionary(x => x.Key, x => x.Value.ToArray());
 var bestTime = TimeSpan.FromDays(1);
 int count = 0;
@@ -26,7 +26,7 @@ for (int i = 0; i < 100; i++)
         "Calculate user permission checks",
         () => OneMsPermussioned.CalculatePermissionChecksFaster(
             userPermissionSetMapWithArray,
-            permissionGroupOccuranceMapWithArray,
+            permissionGroupOccurenceMapWithArray,
             maxPsId
         ),
         (timeTaken, message) =>

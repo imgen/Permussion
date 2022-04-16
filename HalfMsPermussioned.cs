@@ -5,236 +5,235 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using PermissionSetMap = System.Collections.Generic.Dictionary<short, short[]>;
-using PermissionGroupOccuranceMap = System.Collections.Generic.Dictionary<short, short[]>;
+using PermissionGroupOccurenceMap = System.Collections.Generic.Dictionary<short, short[]>;
 
-namespace Permussion
+namespace Permussion;
+
+public static class HalfMsPermussioned
 {
-    public static class HalfMsPermussioned
+    public static (PermissionCheck[], int count)
+        CalculatePermissionChecksLinq(
+            PermissionSetMap permissionSetMap,
+            PermissionGroupOccurenceMap permissionGroupOccurenceMap,
+            int maxPsId)
     {
-        public static (PermissionCheck[], int count)
-            CalculatePermissionChecksLinq(
-            PermissionSetMap permissionSetMap,
-            PermissionGroupOccuranceMap permissionGroupOccuranceMap,
-            int maxPsId)
+        var permissionChecks = permissionSetMap.SelectMany(pair =>
         {
-            var permissionChecks = permissionSetMap.SelectMany(pair =>
-            {
-                var pgIds = pair.Value;
-                return pgIds.Skip(1).Aggregate(
-                        permissionGroupOccuranceMap[pgIds[0]],
-                        (intersection, pgId) =>
-                            intersection.Intersect(permissionGroupOccuranceMap[pgId]).ToArray()
-                    ).Select(x => new PermissionCheck(pair.Key, x));
-            }).ToArray();
+            var pgIds = pair.Value;
+            return pgIds.Skip(1).Aggregate(
+                permissionGroupOccurenceMap[pgIds[0]],
+                (intersection, pgId) =>
+                    intersection.Intersect(permissionGroupOccurenceMap[pgId]).ToArray()
+            ).Select(x => new PermissionCheck(pair.Key, x));
+        }).ToArray();
 
-            return (permissionChecks, permissionChecks.Length);
-        }
+        return (permissionChecks, permissionChecks.Length);
+    }
 
-        public static (short[] psId1s, short[] psId2s, int count)
-            CalculatePermissionChecks(
+    public static (short[] psId1s, short[] psId2s, int count)
+        CalculatePermissionChecks(
             PermissionSetMap permissionSetMap,
-            PermissionGroupOccuranceMap permissionGroupOccuranceMap,
+            PermissionGroupOccurenceMap permissionGroupOccurenceMap,
             int maxPsId)
+    {
+        unchecked
         {
-            unchecked
+            var psIds = permissionSetMap.Keys.ToArray();
+            int totalPermutationCount = 0;
+            int i = psIds.Length;
+            while (--i >= 0)
             {
-                var psIds = permissionSetMap.Keys.ToArray();
-                int totalPermutationCount = 0;
-                int i = psIds.Length;
-                while (--i >= 0)
+                var pgIds = permissionSetMap[psIds[i]];
+                int pgCount = pgIds.Length;
+                int maxPossibleSubsetMatchCount =
+                    permissionGroupOccurenceMap[pgIds[0]].Length;
+                int j = 0;
+                int minPgOccurenceCountIndex = 0;
+                while (++j < pgCount)
                 {
-                    var pgIds = permissionSetMap[psIds[i]];
-                    int pgCount = pgIds.Length;
-                    int maxPossibleSubsetMatchCount =
-                        permissionGroupOccuranceMap[pgIds[0]].Length;
-                    int j = 0;
-                    int minPgOccuranceCountIndex = 0;
-                    while (++j < pgCount)
+                    var pgOccurenceCount = permissionGroupOccurenceMap[pgIds[j]].Length;
+                    if (pgOccurenceCount < maxPossibleSubsetMatchCount)
                     {
-                        var pgOccuranceCount = permissionGroupOccuranceMap[pgIds[j]].Length;
-                        if (pgOccuranceCount < maxPossibleSubsetMatchCount)
-                        {
-                            maxPossibleSubsetMatchCount = pgOccuranceCount;
-                            minPgOccuranceCountIndex = j;
-                        }
-                    }
-                    totalPermutationCount += maxPossibleSubsetMatchCount;
-                    if (minPgOccuranceCountIndex > 0)
-                    {
-                        var temp = pgIds[0];
-                        pgIds[0] = pgIds[minPgOccuranceCountIndex];
-                        pgIds[minPgOccuranceCountIndex] = temp;
+                        maxPossibleSubsetMatchCount = pgOccurenceCount;
+                        minPgOccurenceCountIndex = j;
                     }
                 }
-                var psId1s = new short[totalPermutationCount];
-                var psId2s = new short[totalPermutationCount];
-
-                int startIndex = 0;
-                Parallel.ForEach(
-                    psIds,
-                    psId =>
-                    {
-                        var pgIds = permissionSetMap[psId];
-                        int pgCount = pgIds.Length;
-                        if (pgCount == 1)
-                        {
-                            var pgOccurances = permissionGroupOccuranceMap[pgIds[0]];
-                            var pgOccurancesCount = pgOccurances.Length;
-                            int newStartIndex = Interlocked.Add(ref startIndex, pgOccurancesCount);
-                            var oldStartIndex = newStartIndex - pgOccurancesCount;
-                            Array.Fill(psId1s, psId, oldStartIndex, pgOccurancesCount);
-                            Array.Copy(pgOccurances, 0, psId2s, oldStartIndex, pgOccurancesCount);
-                        }
-                        else
-                        {
-                            var prevIntersection = new HashSet<short>();
-                            var intersection = new HashSet<short>();
-                            var pgOccurances = permissionGroupOccuranceMap[pgIds[0]];
-                            var pgOccurancesCount = pgOccurances.Length;
-                            int j = -1;
-                            while (++j < pgOccurancesCount)
-                            {
-                                prevIntersection.Add(pgOccurances[j]);
-                            }
-
-                            int i = 0;
-                            while (++i < pgCount)
-                            {
-                                pgOccurances = permissionGroupOccuranceMap[pgIds[i]];
-                                pgOccurancesCount = pgOccurances.Length;
-                                j = -1;
-                                while (++j < pgOccurancesCount)
-                                {
-                                    short psId2 = pgOccurances[j];
-                                    if (prevIntersection.Contains(psId2))
-                                    {
-                                        intersection.Add(psId2);
-                                    }
-                                }
-
-                                if (intersection.Count == 1)
-                                {
-                                    break;
-                                }
-
-                                if (i < pgCount - 1)
-                                {
-                                    prevIntersection.Clear();
-                                    (prevIntersection, intersection) = (intersection, prevIntersection);
-                                }
-                            }
-
-                            int matchCount = intersection.Count;
-                            int newStartIndex = Interlocked.Add(ref startIndex, matchCount);
-                            var oldStartIndex = newStartIndex - matchCount;
-                            Array.Fill(psId1s, psId, oldStartIndex, matchCount);
-                            i = 0;
-                            foreach (var psId2 in intersection)
-                            {
-                                psId2s[oldStartIndex + i++] = psId2;
-                            }
-                        }
-                    }
-                );
-
-                return (psId1s, psId2s, startIndex);
-            }
-        }
-
-
-        public static (short[] psId1s, short[] psId2s, int count)
-            CalculatePermissionChecksFaster(
-            PermissionSetMap permissionSetMap,
-            PermissionGroupOccuranceMap permissionGroupOccuranceMap,
-            int maxPsId)
-        {
-            unchecked
-            {
-                var psIds = permissionSetMap.Keys.ToArray();
-                int totalPermutationCount = 0;
-                int i = psIds.Length;
-                while (--i >= 0)
+                totalPermutationCount += maxPossibleSubsetMatchCount;
+                if (minPgOccurenceCountIndex > 0)
                 {
-                    var pgIds = permissionSetMap[psIds[i]];
+                    var temp = pgIds[0];
+                    pgIds[0] = pgIds[minPgOccurenceCountIndex];
+                    pgIds[minPgOccurenceCountIndex] = temp;
+                }
+            }
+            var psId1s = new short[totalPermutationCount];
+            var psId2s = new short[totalPermutationCount];
+
+            int startIndex = 0;
+            Parallel.ForEach(
+                psIds,
+                psId =>
+                {
+                    var pgIds = permissionSetMap[psId];
                     int pgCount = pgIds.Length;
-                    int maxPossibleSubsetMatchCount =
-                        permissionGroupOccuranceMap[pgIds[0]].Length;
-                    int j = 0;
-                    int minPgOccuranceCountIndex = 0;
-                    while (++j < pgCount)
+                    if (pgCount == 1)
                     {
-                        var pgOccuranceCount = permissionGroupOccuranceMap[pgIds[j]].Length;
-                        if (pgOccuranceCount < maxPossibleSubsetMatchCount)
-                        {
-                            maxPossibleSubsetMatchCount = pgOccuranceCount;
-                            minPgOccuranceCountIndex = j;
-                        }
+                        var pgOccurences = permissionGroupOccurenceMap[pgIds[0]];
+                        var pgOccurencesCount = pgOccurences.Length;
+                        int newStartIndex = Interlocked.Add(ref startIndex, pgOccurencesCount);
+                        var oldStartIndex = newStartIndex - pgOccurencesCount;
+                        Array.Fill(psId1s, psId, oldStartIndex, pgOccurencesCount);
+                        Array.Copy(pgOccurences, 0, psId2s, oldStartIndex, pgOccurencesCount);
                     }
-                    totalPermutationCount += maxPossibleSubsetMatchCount;
-                    if (minPgOccuranceCountIndex > 0)
+                    else
                     {
-                        var temp = pgIds[0];
-                        pgIds[0] = pgIds[minPgOccuranceCountIndex];
-                        pgIds[minPgOccuranceCountIndex] = temp;
+                        var prevIntersection = new HashSet<short>();
+                        var intersection = new HashSet<short>();
+                        var pgOccurences = permissionGroupOccurenceMap[pgIds[0]];
+                        var pgOccurencesCount = pgOccurences.Length;
+                        int j = -1;
+                        while (++j < pgOccurencesCount)
+                        {
+                            prevIntersection.Add(pgOccurences[j]);
+                        }
+
+                        int i = 0;
+                        while (++i < pgCount)
+                        {
+                            pgOccurences = permissionGroupOccurenceMap[pgIds[i]];
+                            pgOccurencesCount = pgOccurences.Length;
+                            j = -1;
+                            while (++j < pgOccurencesCount)
+                            {
+                                short psId2 = pgOccurences[j];
+                                if (prevIntersection.Contains(psId2))
+                                {
+                                    intersection.Add(psId2);
+                                }
+                            }
+
+                            if (intersection.Count == 1)
+                            {
+                                break;
+                            }
+
+                            if (i < pgCount - 1)
+                            {
+                                prevIntersection.Clear();
+                                (prevIntersection, intersection) = (intersection, prevIntersection);
+                            }
+                        }
+
+                        int matchCount = intersection.Count;
+                        int newStartIndex = Interlocked.Add(ref startIndex, matchCount);
+                        var oldStartIndex = newStartIndex - matchCount;
+                        Array.Fill(psId1s, psId, oldStartIndex, matchCount);
+                        i = 0;
+                        foreach (var psId2 in intersection)
+                        {
+                            psId2s[oldStartIndex + i++] = psId2;
+                        }
                     }
                 }
-                var psId1s = new short[totalPermutationCount];
-                var psId2s = new short[totalPermutationCount];
+            );
 
-                int startIndex = 0;
-                Parallel.ForEach(
-                    psIds,
-                    psId =>
+            return (psId1s, psId2s, startIndex);
+        }
+    }
+
+
+    public static (short[] psId1s, short[] psId2s, int count)
+        CalculatePermissionChecksFaster(
+            PermissionSetMap permissionSetMap,
+            PermissionGroupOccurenceMap permissionGroupOccurenceMap,
+            int maxPsId)
+    {
+        unchecked
+        {
+            var psIds = permissionSetMap.Keys.ToArray();
+            int totalPermutationCount = 0;
+            int i = psIds.Length;
+            while (--i >= 0)
+            {
+                var pgIds = permissionSetMap[psIds[i]];
+                int pgCount = pgIds.Length;
+                int maxPossibleSubsetMatchCount =
+                    permissionGroupOccurenceMap[pgIds[0]].Length;
+                int j = 0;
+                int minPgOccurenceCountIndex = 0;
+                while (++j < pgCount)
+                {
+                    var pgOccurenceCount = permissionGroupOccurenceMap[pgIds[j]].Length;
+                    if (pgOccurenceCount < maxPossibleSubsetMatchCount)
                     {
-                        var pgIds = permissionSetMap[psId];
-                        int pgCount = pgIds.Length;
-                        if (pgCount == 1)
-                        {
-                            var pgOccurances = permissionGroupOccuranceMap[pgIds[0]];
-                            var pgOccurancesCount = pgOccurances.Length;
-                            int newStartIndex = Interlocked.Add(ref startIndex, pgOccurancesCount);
-                            var oldStartIndex = newStartIndex - pgOccurancesCount;
-                            Array.Fill(psId1s, psId, oldStartIndex, pgOccurancesCount);
-                            Array.Copy(pgOccurances, 0, psId2s, oldStartIndex, pgOccurancesCount);
-                        }
-                        else
-                        {
-                            var pgOccurances = permissionGroupOccuranceMap[pgIds[0]];
-                            var pgOccurancesCount = pgOccurances.Length;
-                            var intersection = new short[pgOccurancesCount];
-                            Array.Copy(pgOccurances, intersection, pgOccurancesCount);
+                        maxPossibleSubsetMatchCount = pgOccurenceCount;
+                        minPgOccurenceCountIndex = j;
+                    }
+                }
+                totalPermutationCount += maxPossibleSubsetMatchCount;
+                if (minPgOccurenceCountIndex > 0)
+                {
+                    var temp = pgIds[0];
+                    pgIds[0] = pgIds[minPgOccurenceCountIndex];
+                    pgIds[minPgOccurenceCountIndex] = temp;
+                }
+            }
+            var psId1s = new short[totalPermutationCount];
+            var psId2s = new short[totalPermutationCount];
 
-                            int i = 0;
-                            int matchCount = pgOccurancesCount;
-                            while (matchCount > 1 && ++i < pgCount)
+            int startIndex = 0;
+            Parallel.ForEach(
+                psIds,
+                psId =>
+                {
+                    var pgIds = permissionSetMap[psId];
+                    int pgCount = pgIds.Length;
+                    if (pgCount == 1)
+                    {
+                        var pgOccurences = permissionGroupOccurenceMap[pgIds[0]];
+                        var pgOccurencesCount = pgOccurences.Length;
+                        int newStartIndex = Interlocked.Add(ref startIndex, pgOccurencesCount);
+                        var oldStartIndex = newStartIndex - pgOccurencesCount;
+                        Array.Fill(psId1s, psId, oldStartIndex, pgOccurencesCount);
+                        Array.Copy(pgOccurences, 0, psId2s, oldStartIndex, pgOccurencesCount);
+                    }
+                    else
+                    {
+                        var pgOccurences = permissionGroupOccurenceMap[pgIds[0]];
+                        var pgOccurencesCount = pgOccurences.Length;
+                        var intersection = new short[pgOccurencesCount];
+                        Array.Copy(pgOccurences, intersection, pgOccurencesCount);
+
+                        int i = 0;
+                        int matchCount = pgOccurencesCount;
+                        while (matchCount > 1 && ++i < pgCount)
+                        {
+                            pgOccurences = permissionGroupOccurenceMap[pgIds[i]];
+                            int j = 0;
+                            while (j < matchCount)
                             {
-                                pgOccurances = permissionGroupOccuranceMap[pgIds[i]];
-                                int j = 0;
-                                while (j < matchCount)
+                                var psId2 = intersection[j];
+                                if (Utils.BinarySearch(pgOccurences, psId2) < 0)
                                 {
-                                    var psId2 = intersection[j];
-                                    if (Utils.BinarySearch(pgOccurances, psId2) < 0)
-                                    {
-                                        intersection[j] = intersection[matchCount - 1];
-                                        matchCount--;
-                                    }
-                                    else
-                                    {
-                                        j++;
-                                    }
+                                    intersection[j] = intersection[matchCount - 1];
+                                    matchCount--;
+                                }
+                                else
+                                {
+                                    j++;
                                 }
                             }
-
-                            int newStartIndex = Interlocked.Add(ref startIndex, matchCount);
-                            var oldStartIndex = newStartIndex - matchCount;
-                            Array.Fill(psId1s, psId, oldStartIndex, matchCount);
-                            Array.Copy(intersection, 0, psId2s, oldStartIndex, matchCount);
                         }
-                    }
-                );
 
-                return (psId1s, psId2s, startIndex);
-            }
+                        int newStartIndex = Interlocked.Add(ref startIndex, matchCount);
+                        var oldStartIndex = newStartIndex - matchCount;
+                        Array.Fill(psId1s, psId, oldStartIndex, matchCount);
+                        Array.Copy(intersection, 0, psId2s, oldStartIndex, matchCount);
+                    }
+                }
+            );
+
+            return (psId1s, psId2s, startIndex);
         }
     }
 }
