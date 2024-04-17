@@ -23,14 +23,12 @@ public static class TinyProfiler
         }
     }
 
-    public static void Profile(string operationName, Action action, Action<TimeSpan, string> printer = null)
-    {
+    public static void Profile(string operationName, Action action, Action<TimeSpan, string> printer = null) =>
         Profile<object>(operationName, () =>
         {
             action();
             return null;
         }, printer);
-    }
 
     public static async Task<T> ProfileAsync<T>(string operationName, Func<ValueTask<T>> func, Action<TimeSpan, string> printer = null)
     {
@@ -66,18 +64,16 @@ public static class TinyProfiler
         }
     }
 
-    public static async Task ProfileAsync(string operationName, Func<Task> func, Action<TimeSpan, string> printer = null)
-    {
-        await ProfileAsync<object>(operationName,
+    public static Task ProfileAsync(string operationName, Func<Task> func, Action<TimeSpan, string> printer = null) =>
+        ProfileAsync<object>(operationName,
             async () =>
             {
                 await func();
                 return null;
             }, printer);
-    }
 
-    public static async Task ProfileAsync(string operationName, Func<ConfiguredTaskAwaitable> func, Action<TimeSpan, string> printer = null) =>
-        await ProfileAsync<object>(operationName,
+    public static Task ProfileAsync(string operationName, Func<ConfiguredTaskAwaitable> func, Action<TimeSpan, string> printer = null) =>
+        ProfileAsync<object>(operationName,
             async () =>
             {
                 await func();
