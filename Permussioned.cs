@@ -11,9 +11,13 @@ public static class Permussioned
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap) =>
         permissionSetMap.SelectMany(
-            pair => pair.Value
-                .SelectMany(x => permissionGroupOccurenceMap[x])
+            pair => pair.Value.Count > 1
+                ?
+                pair.Value.SelectMany(x => permissionGroupOccurenceMap[x])
                 .Distinct()
+                .Select(x => new PermissionCheck(pair.Key, x))
+                :
+                permissionGroupOccurenceMap[pair.Value[0]]
                 .Select(x => new PermissionCheck(pair.Key, x))
         ).ToArray();
 
@@ -24,10 +28,14 @@ public static class Permussioned
             .SelectMany(
                 permissionSetMapChunk =>
                     permissionSetMapChunk.SelectMany(
-                        pair => pair.Value
-                            .SelectMany(x => permissionGroupOccurenceMap[x])
-                            .Distinct()
-                            .Select(x => new PermissionCheck(pair.Key, x))
+                        pair => pair.Value.Count > 1
+                            ?
+                            pair.Value.SelectMany(x => permissionGroupOccurenceMap[x])
+                                .Distinct()
+                                .Select(x => new PermissionCheck(pair.Key, x))
+                            :
+                            permissionGroupOccurenceMap[pair.Value[0]]
+                                .Select(x => new PermissionCheck(pair.Key, x))
                     )
             ).ToArray();
 
