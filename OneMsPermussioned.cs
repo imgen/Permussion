@@ -161,7 +161,7 @@ class OneMsPermussioned
             {
                 var pgIds = permissionSetMap[psIds[i]];
                 int pgCount = pgIds.Length;
-                int maxOccurangePgCount = 0;
+                int maxOccurencePgCount = 0;
                 int maxOccurencePgIndex = -1;
 
                 var j = -1;
@@ -169,9 +169,9 @@ class OneMsPermussioned
                 {
                     int occurenceCount = permissionGroupOccurenceMap[pgIds[j]].Length;
                     totalPermutationCount += occurenceCount;
-                    if (occurenceCount > maxOccurangePgCount)
+                    if (occurenceCount > maxOccurencePgCount)
                     {
-                        maxOccurangePgCount = occurenceCount;
+                        maxOccurencePgCount = occurenceCount;
                         maxOccurencePgIndex = j;
                     }
                 }
@@ -286,7 +286,7 @@ class OneMsPermussioned
             {
                 var pgIds = permissionSetMap[psId];
                 int pgCount = pgIds.Length;
-                int maxOccurangePgCount = 0;
+                int maxOccurencePgCount = 0;
                 int maxOccurencePgIndex = -1;
 
                 var j = -1;
@@ -295,9 +295,9 @@ class OneMsPermussioned
                 {
                     int occurenceCount = permissionGroupOccurenceMap[pgIds[j]].Length;
                     permutationCount += occurenceCount;
-                    if (occurenceCount > maxOccurangePgCount)
+                    if (occurenceCount > maxOccurencePgCount)
                     {
-                        maxOccurangePgCount = occurenceCount;
+                        maxOccurencePgCount = occurenceCount;
                         maxOccurencePgIndex = j;
                     }
                 }

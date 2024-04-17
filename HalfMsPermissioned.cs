@@ -28,7 +28,7 @@ public static class HalfMsPermissioned
             {
                 var pgIds = permissionSetMap[psIds[i]];
                 int pgCount = pgIds.Length;
-                int maxOccurangePgCount = 0;
+                int maxOccurencePgCount = 0;
                 int maxOccurencePgIndex = -1;
 
                 var j = -1;
@@ -36,9 +36,9 @@ public static class HalfMsPermissioned
                 {
                     int occurenceCount = permissionGroupOccurenceMap[pgIds[j]].Length;
                     totalPermutationCount += occurenceCount;
-                    if (occurenceCount > maxOccurangePgCount)
+                    if (occurenceCount > maxOccurencePgCount)
                     {
-                        maxOccurangePgCount = occurenceCount;
+                        maxOccurencePgCount = occurenceCount;
                         maxOccurencePgIndex = j;
                     }
                 }
@@ -94,15 +94,6 @@ public static class HalfMsPermissioned
                         buckets[j].AddFirst(firstPgOccurences[j]);
                     }
                     permissionChecksCount += firstPgOccurences.Length;
-
-                    int i = 0;
-                    LinkedListNode<short> previousNode;
-                    while (++i < pgCount)
-                    {
-                        var pgOccurences = permissionGroupOccurenceMap[pgIds[i]];
-                        j = pgOccurences.Length;
-
-                    }
 
                     newStartIndex = Interlocked.Add(ref startIndex, permissionChecksCount);
                     oldStartIndex = newStartIndex - permissionChecksCount;
