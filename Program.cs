@@ -15,8 +15,7 @@ var (userPermissionSetMap, permissionGroupOccurenceMap) = Profile(
 
 var bestTime = TimeSpan.FromDays(1);
 PermissionCheck[] permissionChecks = null;
-for (int i = 0; i < 10_000; i++)
-{
+for (var i = 0; i < 10_000; i++)
     permissionChecks = Profile(
         "Calculate user permission checks",
         () => Permussioned.CalculatePermissionChecksUnion(
@@ -29,9 +28,8 @@ for (int i = 0; i < 10_000; i++)
             Console.WriteLine(message);
         }
     );
-}
 
-var counts = permissionChecks.GroupBy(x => x.PermissionSetId1)
+var counts = permissionChecks!.GroupBy(x => x.PermissionSetId1)
         .Select(x => x.Count()).ToArray();
 var countOfMostMatches = counts.Max();
 var countOfLeastMatches = counts.Min();

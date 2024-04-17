@@ -1,6 +1,5 @@
 ﻿using System.Linq;
-using PermissionGroupOccurenceMap = System.Collections.Generic.Dictionary<short,
-    System.Collections.Generic.List<short>>;
+using PermissionGroupOccurenceMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 using PermissionSetMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 
 namespace Permussion;
