@@ -24,7 +24,7 @@ for (int i = 0; i < 100; i++)
 {
     (psId1s, psId2s, count) = Profile(
         "Calculate user permission checks",
-        () => OneMsPermussioned.CalculatePermissionChecksFaster(
+        () => HalfMsPermussioned.CalculatePermissionChecksFaster(
             userPermissionSetMapWithArray,
             permissionGroupOccurenceMapWithArray,
             maxPsId

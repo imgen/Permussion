@@ -1,0 +1,2 @@
+﻿For HalfMsPermissioned, the best result is 3718μs
+For HalfMsPermussioned.CalculatePermissionChecksFaster, the best result is 5248μs
