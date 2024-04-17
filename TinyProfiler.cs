@@ -22,6 +22,7 @@ public static class TinyProfiler
             throw;
         }
     }
+
     public static void Profile(string operationName, Action action, Action<TimeSpan, string> printer = null)
     {
         Profile<object>(operationName, () =>
@@ -30,6 +31,7 @@ public static class TinyProfiler
             return null;
         }, printer);
     }
+
     public static async Task<T> ProfileAsync<T>(string operationName, Func<ValueTask<T>> func, Action<TimeSpan, string> printer = null)
     {
         var watch = new Stopwatch();
@@ -46,6 +48,7 @@ public static class TinyProfiler
             throw;
         }
     }
+
     public static async Task<T> ProfileAsync<T>(string operationName, Func<ConfiguredTaskAwaitable<T>> func, Action<TimeSpan, string> printer = null)
     {
         var watch = new Stopwatch();
@@ -62,6 +65,7 @@ public static class TinyProfiler
             throw;
         }
     }
+
     public static async Task ProfileAsync(string operationName, Func<Task> func, Action<TimeSpan, string> printer = null)
     {
         await ProfileAsync<object>(operationName,
@@ -71,6 +75,7 @@ public static class TinyProfiler
                 return null;
             }, printer);
     }
+
     public static async Task ProfileAsync(string operationName, Func<ConfiguredTaskAwaitable> func, Action<TimeSpan, string> printer = null)
     {
         await ProfileAsync<object>(operationName,
@@ -80,6 +85,7 @@ public static class TinyProfiler
                 return null;
             }, printer);
     }
+
     private static void PrintProfileMessage(Stopwatch watch, string operationName, Action<TimeSpan, string> printer = null)
     {
         watch.Stop();
@@ -99,6 +105,7 @@ public static class TinyProfiler
             Console.ForegroundColor = oldForeColor;
         }
     }
+
     public static string FormatTimeSpan(TimeSpan timeSpan)
     {
         var (minutes, seconds, milliseconds, microseconds) = (
