@@ -9,7 +9,7 @@ using System;
 
 namespace Permussion;
 
-public class PermussionedWithSubsetCheck
+public static class PermussionedWithSubsetCheck
 {
     public static (short[] psId1s, short[] psId2s, int count)
         CalculatePermissionChecksParallel(

@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace Permussion;
 
-class OneMsPermussioned
+static class OneMsPermussioned
 {
     public static (PermissionCheck[] permissionChecks, int count) CalculatePermissionChecksDistinct(
         PermissionSetMap permissionSetMap,
