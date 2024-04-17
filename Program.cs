@@ -8,26 +8,20 @@ var permissionSetGroups = await ProfileAsync(
     "Load permission set groups",
     LoadPermissionSetGroups
 );
-var (userPermissionSetMap, permissionGroupOccurenceMap, maxPsId) = Profile(
+var (userPermissionSetMap, permissionGroupOccurenceMap) = Profile(
     "Build permission maps",
     () => BuildPermissionMaps(permissionSetGroups)
 );
 
-var userPermissionSetMapWithArray = userPermissionSetMap
-    .ToDictionary(x => x.Key, x => x.Value.ToArray());
-var permissionGroupOccurenceMapWithArray = permissionGroupOccurenceMap
-    .ToDictionary(x => x.Key, x => x.Value.ToArray());
 var bestTime = TimeSpan.FromDays(1);
-int count = 0;
-short[] psId1s = null, psId2s;
-for (int i = 0; i < 1000; i++)
+PermissionCheck[] permissionChecks = null;
+for (int i = 0; i < 1_000; i++)
 {
-    (psId1s, psId2s, count) = Profile(
+    permissionChecks = Profile(
         "Calculate user permission checks",
-        () => HalfMsPermissioned.CalculatePermissionChecksWithLinkedList(
-            userPermissionSetMapWithArray,
-            permissionGroupOccurenceMapWithArray,
-            maxPsId
+        () => Permussioned.CalculatePermissionChecks(
+            userPermissionSetMap,
+            permissionGroupOccurenceMap
         ),
         (timeTaken, message) =>
         {
@@ -37,17 +31,14 @@ for (int i = 0; i < 1000; i++)
     );
 }
 
-bool doCountingOfMatches = true;
-if (doCountingOfMatches)
-{
-    var counts = psId1s.Take(count).GroupBy(x => x)
+var counts = permissionChecks.GroupBy(x => x.PermissionSetId1)
         .Select(x => x.Count()).ToArray();
-    var countOfMostMatches = counts.Max();
-    var countOfLeastMatches = counts.Min();
-    var averageMatchCount = counts.Average();
-    Console.WriteLine($"The max count of matches is {countOfMostMatches}");
-    Console.WriteLine($"The min count of matches is {countOfLeastMatches}");
-    Console.WriteLine($"The average count of matches is {averageMatchCount}");
-}
-Console.WriteLine($"Generated {count} user permission checks");
+var countOfMostMatches = counts.Max();
+var countOfLeastMatches = counts.Min();
+var averageMatchCount = counts.Average();
+Console.WriteLine($"The max count of matches is {countOfMostMatches}");
+Console.WriteLine($"The min count of matches is {countOfLeastMatches}");
+Console.WriteLine($"The average count of matches is {averageMatchCount}");
+
+Console.WriteLine($"Generated {permissionChecks.Length} user permission checks");
 Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)} to calculate the user permission checks");

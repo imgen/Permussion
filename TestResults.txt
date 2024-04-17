@@ -1,3 +1,1 @@
-﻿For HalfMsPermissioned, the best result is 3718μs
-For HalfMsPermussioned.CalculatePermissionChecksFaster, the best result is 5248μs
-For HalfMsPermussioned.CalculatePermissionChecksLinq, the best result is  2ms 918s
+﻿For HalfMsPermussioned.CalculatePermissionChecksLinq, the best result is  2ms 918s

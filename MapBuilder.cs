@@ -21,8 +21,7 @@ public static class MapBuilder
 
     public static (
         PermissionSetMap UserPermissionSetMap,
-        PermissionGroupOccurrenceMap PermissionGroupOccurenceMap,
-        short MaxPermissionSetId)
+        PermissionGroupOccurrenceMap PermissionGroupOccurenceMap)
         BuildPermissionMaps(PermissionSetGroup[] permissionSetGroups)
     {
         PermissionSetMap userPermissionSetMap = new();
@@ -38,7 +37,7 @@ public static class MapBuilder
             }
             else if (isUserPermissionSet)
             {
-                userPermissionSetMap[psId] = new() { pgId };
+                userPermissionSetMap[psId] = [pgId];
             }
 
             if (permissionGroupOccurenceMap.TryGetValue(pgId, out var psIds))
@@ -47,17 +46,13 @@ public static class MapBuilder
             }
             else
             {
-                permissionGroupOccurenceMap[pgId] = new() { psId };
+                permissionGroupOccurenceMap[pgId] = [psId];
             }
         }
             
         return (
             userPermissionSetMap,
-            permissionGroupOccurenceMap,
-            permissionSetGroups[^1].PermissionSetId
+            permissionGroupOccurenceMap
         );
     }
-
-    static bool IsSorted<T>(List<T> list) => 
-        list.OrderBy(x => x).SequenceEqual(list);
 }
