@@ -76,15 +76,13 @@ public static class TinyProfiler
             }, printer);
     }
 
-    public static async Task ProfileAsync(string operationName, Func<ConfiguredTaskAwaitable> func, Action<TimeSpan, string> printer = null)
-    {
+    public static async Task ProfileAsync(string operationName, Func<ConfiguredTaskAwaitable> func, Action<TimeSpan, string> printer = null) =>
         await ProfileAsync<object>(operationName,
             async () =>
             {
                 await func();
                 return null;
             }, printer);
-    }
 
     private static void PrintProfileMessage(Stopwatch watch, string operationName, Action<TimeSpan, string> printer = null)
     {
@@ -95,15 +93,11 @@ public static class TinyProfiler
         var duration = FormatTimeSpan(watch.Elapsed);
         var message = $"\tThe operation {operationName} took {duration}";
         var newLine = Environment.NewLine;
-        if (isDefault)
-        {
+        if (isDefault) 
             Console.ForegroundColor = ConsoleColor.Yellow;
-        }
         printer(watch.Elapsed, newLine + newLine + "PROFILING MESSAGE START" + newLine + message + newLine + "PROFILING MESSAGE END" + newLine + newLine);
-        if (isDefault)
-        {
+        if (isDefault) 
             Console.ForegroundColor = oldForeColor;
-        }
     }
 
     public static string FormatTimeSpan(TimeSpan timeSpan)
