@@ -1,1 +1,2 @@
-﻿For HalfMsPermussioned.CalculatePermissionChecksLinq, the best result is  2ms 918s
+﻿For Permussioned.CalculatePermissionChecksUnion, the best result is  28ms 352μs
+For Permussioned.CalculatePermissionChecks, the best result is  9ms 439μs

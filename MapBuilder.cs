@@ -5,19 +5,15 @@ using System.IO;
 using PermissionSetMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 using PermissionGroupOccurrenceMap = System.Collections.Generic.Dictionary<short,
     System.Collections.Generic.List<short>>;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Permussion;
 
 public static class MapBuilder
 {
-    public static ValueTask<PermissionSetGroup[]> LoadPermissionSetGroups()
-    {
-        return JsonSerializer.DeserializeAsync<PermissionSetGroup[]>(
+    public static ValueTask<PermissionSetGroup[]> LoadPermissionSetGroups() =>
+        JsonSerializer.DeserializeAsync<PermissionSetGroup[]>(
             File.OpenRead("PermissionSetGroups.json")
         );
-    }
 
     public static (
         PermissionSetMap UserPermissionSetMap,
@@ -56,3 +52,9 @@ public static class MapBuilder
         );
     }
 }
+
+public record PermissionSetGroup(
+    short PermissionSetId,
+    short PermissionGroupId,
+    bool IsUserPermissionSet
+);
