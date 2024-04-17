@@ -1,2 +1,4 @@
-﻿For Permussioned.CalculatePermissionChecksUnion, the best result is  28ms 352μs
-For Permussioned.CalculatePermissionChecks, the best result is  9ms 439μs
+﻿For Permussioned.CalculatePermissionChecks, the best result is 9ms 439μs
+For Permussioned.CalculatePermissionChecksUnion, the best result is 28ms 352μs
+
+For Permussioned.CalculatePermissionChecksUnion, the best result is 3ms 53μs

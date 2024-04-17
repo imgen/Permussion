@@ -30,6 +30,23 @@ public static class Permussioned
                     union.Union(permissionGroupOccurenceMap[pgId]).ToList()
             ).Select(x => new PermissionCheck(pair.Key, x));
         }).ToArray();
+
+    /// <summary>
+    /// This is different logic (without using PermissionGroup idea). The idea becomes from a Union to Intersection
+    /// </summary>
+    public static PermissionCheck[]
+        CalculatePermissionChecksIntersection(
+            PermissionSetMap permissionSetMap,
+            PermissionGroupOccurenceMap permissionGroupOccurenceMap) =>
+        permissionSetMap.SelectMany(pair =>
+        {
+            var pgIds = pair.Value;
+            return pgIds.Skip(1).Aggregate(
+                permissionGroupOccurenceMap[pgIds[0]],
+                (intersection, pgId) =>
+                    intersection.Intersect(permissionGroupOccurenceMap[pgId]).ToList()
+            ).Select(x => new PermissionCheck(pair.Key, x));
+        }).ToArray();
 }
 
 public record PermissionCheck(short PermissionSetId1, short PermissionSetId2);
