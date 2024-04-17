@@ -6,7 +6,8 @@ namespace Permussion;
 
 public static class Permussioned
 {
-    public static PermissionCheck[] CalculatePermissionChecks(
+    private const int ChunkCount = 64;
+    public static PermissionCheck[] CalculatePermissionChecksDistinct(
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap) =>
         permissionSetMap.SelectMany(
@@ -15,6 +16,20 @@ public static class Permussioned
                 .Distinct()
                 .Select(x => new PermissionCheck(pair.Key, x))
         ).ToArray();
+
+    public static PermissionCheck[] CalculatePermissionChecksDistinctParallel(
+        PermissionSetMap permissionSetMap,
+        PermissionGroupOccurenceMap permissionGroupOccurenceMap) =>
+        permissionSetMap.Chunk(permissionSetMap.Count / ChunkCount).AsParallel()
+            .SelectMany(
+                permissionSetMapChunk =>
+                    permissionSetMapChunk.SelectMany(
+                        pair => pair.Value
+                            .SelectMany(x => permissionGroupOccurenceMap[x])
+                            .Distinct()
+                            .Select(x => new PermissionCheck(pair.Key, x))
+                    )
+            ).ToArray();
 
     public static PermissionCheck[]
         CalculatePermissionChecksUnion(
@@ -29,6 +44,24 @@ public static class Permussioned
                     union.Union(permissionGroupOccurenceMap[pgId]).ToList()
             ).Select(x => new PermissionCheck(pair.Key, x));
         }).ToArray();
+
+    public static PermissionCheck[]
+        CalculatePermissionChecksUnionParallel(
+            PermissionSetMap permissionSetMap,
+            PermissionGroupOccurenceMap permissionGroupOccurenceMap) =>
+        permissionSetMap.Chunk(permissionSetMap.Count / ChunkCount).AsParallel()
+            .SelectMany(
+                permissionSetMapChunk =>
+                    permissionSetMapChunk.SelectMany(pair =>
+                    {
+                        var pgIds = pair.Value;
+                        return pgIds.Skip(1).Aggregate(
+                            permissionGroupOccurenceMap[pgIds[0]],
+                            (union, pgId) =>
+                                union.Union(permissionGroupOccurenceMap[pgId]).ToList()
+                        ).Select(x => new PermissionCheck(pair.Key, x));
+                    })
+            ).ToArray();
 
     /// <summary>
     /// This is different logic (without using PermissionGroup idea). The idea becomes from a Union to Intersection
@@ -46,6 +79,27 @@ public static class Permussioned
                     intersection.Intersect(permissionGroupOccurenceMap[pgId]).ToList()
             ).Select(x => new PermissionCheck(pair.Key, x));
         }).ToArray();
+
+    /// <summary>
+    /// This is different logic (without using PermissionGroup idea). The idea becomes from a Union to Intersection
+    /// </summary>
+    public static PermissionCheck[]
+        CalculatePermissionChecksIntersectionParallel(
+            PermissionSetMap permissionSetMap,
+            PermissionGroupOccurenceMap permissionGroupOccurenceMap) =>
+        permissionSetMap.Chunk(permissionSetMap.Count / ChunkCount).AsParallel()
+            .SelectMany(
+                permissionSetMapChunk =>
+                    permissionSetMapChunk.SelectMany(pair =>
+                    {
+                        var pgIds = pair.Value;
+                        return pgIds.Skip(1).Aggregate(
+                            permissionGroupOccurenceMap[pgIds[0]],
+                            (intersection, pgId) =>
+                                intersection.Intersect(permissionGroupOccurenceMap[pgId]).ToList()
+                        ).Select(x => new PermissionCheck(pair.Key, x));
+                    })
+            ).ToArray();
 }
 
 public record PermissionCheck(short PermissionSetId1, short PermissionSetId2);
