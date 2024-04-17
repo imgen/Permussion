@@ -20,11 +20,11 @@ var permissionGroupOccurenceMapWithArray = permissionGroupOccurenceMap
 var bestTime = TimeSpan.FromDays(1);
 int count = 0;
 short[] psId1s = null, psId2s;
-for (int i = 0; i < 100; i++)
+for (int i = 0; i < 1000; i++)
 {
     (psId1s, psId2s, count) = Profile(
         "Calculate user permission checks",
-        () => HalfMsPermussioned.CalculatePermissionChecksFaster(
+        () => HalfMsPermissioned.CalculatePermissionChecksWithLinkedList(
             userPermissionSetMapWithArray,
             permissionGroupOccurenceMapWithArray,
             maxPsId
