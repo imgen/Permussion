@@ -7,6 +7,7 @@ namespace Permussion;
 public static class Permussioned
 {
     private const int ChunkCount = 64;
+
     public static PermissionCheck[] CalculatePermissionChecksDistinct(
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap) =>
@@ -16,6 +17,27 @@ public static class Permussioned
                 .Distinct()
                 .Select(x => new PermissionCheck(pair.Key, x))
         ).ToArray();
+
+    public static PermissionCheck[] CalculatePermissionChecksDistinctWithPredicategorize(
+        PermissionSetMap permissionSetMap,
+        PermissionGroupOccurenceMap permissionGroupOccurenceMap)
+    {
+        var (multipleItems, singleItems) = permissionSetMap.Predicategorize(
+            x => x.Value.Count > 1);
+        var singlePermissionChecks = singleItems.SelectMany(
+            pair => permissionGroupOccurenceMap[pair.Value[0]]
+                .Select(x => new PermissionCheck(pair.Key, x)
+            )
+        );
+        var multiplePermissionChecks = multipleItems.SelectMany(
+            pair => pair.Value
+                .SelectMany(x => permissionGroupOccurenceMap[x])
+                .Distinct()
+                .Select(x => new PermissionCheck(pair.Key, x))
+        );
+
+        return singlePermissionChecks.Concat(multiplePermissionChecks).ToArray();
+    }
 
     public static PermissionCheck[] CalculatePermissionChecksDistinctParallel(
         PermissionSetMap permissionSetMap,
@@ -30,6 +52,36 @@ public static class Permussioned
                             .Select(x => new PermissionCheck(pair.Key, x))
                     )
             ).ToArray();
+
+    public static PermissionCheck[] CalculatePermissionChecksDistinctParallelWithPredicategorize(
+        PermissionSetMap permissionSetMap,
+        PermissionGroupOccurenceMap permissionGroupOccurenceMap)
+    {
+        var (multipleItems, singleItems) = permissionSetMap.Predicategorize(
+            x => x.Value.Count > 1);
+        var chunkSize = permissionSetMap.Count / ChunkCount;
+        var singlePermissionChecks = singleItems.Chunk(chunkSize).AsParallel()
+            .SelectMany(
+                permissionSetMapChunk =>
+                    permissionSetMapChunk.SelectMany(
+                        pair => permissionGroupOccurenceMap[pair.Value[0]]
+                            .Select(x => new PermissionCheck(pair.Key, x)
+                    )
+            )
+        );
+        var multiplePermissionChecks = multipleItems.Chunk(chunkSize).AsParallel()
+            .SelectMany(
+                permissionSetMapChunk =>
+                    permissionSetMapChunk.SelectMany(
+                        pair => pair.Value
+                            .SelectMany(x => permissionGroupOccurenceMap[x])
+                            .Distinct()
+                            .Select(x => new PermissionCheck(pair.Key, x))
+                    )
+            );
+
+        return singlePermissionChecks.Concat(multiplePermissionChecks).ToArray();
+    }
 
     public static PermissionCheck[]
         CalculatePermissionChecksUnion(
