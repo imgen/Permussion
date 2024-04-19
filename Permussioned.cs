@@ -22,7 +22,7 @@ public static class Permussioned
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap)
     {
-        var (multipleItems, singleItems) = permissionSetMap.Predicategorize(
+        var (multipleItems, singleItems, _, _) = permissionSetMap.Predicategorize(
             x => x.Value.Count > 1);
         var singlePermissionChecks = singleItems.SelectMany(
             pair => permissionGroupOccurenceMap[pair.Value[0]]
@@ -57,10 +57,9 @@ public static class Permussioned
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap)
     {
-        var (multipleItems, singleItems) = permissionSetMap.Predicategorize(
+        var (multipleItems, singleItems, multipleItemsCount, singleItemsCount) = permissionSetMap.Predicategorize(
             x => x.Value.Count > 1);
-        var chunkSize = permissionSetMap.Count / ChunkCount;
-        var singlePermissionChecks = singleItems.Chunk(chunkSize).AsParallel()
+        var singlePermissionChecks = singleItems.Chunk(singleItemsCount / ChunkCount).AsParallel()
             .SelectMany(
                 permissionSetMapChunk =>
                     permissionSetMapChunk.SelectMany(
@@ -69,7 +68,7 @@ public static class Permussioned
                     )
             )
         );
-        var multiplePermissionChecks = multipleItems.Chunk(chunkSize).AsParallel()
+        var multiplePermissionChecks = multipleItems.Chunk(multipleItemsCount / ChunkCount).AsParallel()
             .SelectMany(
                 permissionSetMapChunk =>
                     permissionSetMapChunk.SelectMany(
