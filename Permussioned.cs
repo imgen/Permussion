@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using PermissionGroupOccurenceMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 using PermissionSetMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
@@ -64,18 +65,17 @@ public static class Permussioned
     {
         var (multipleItems, singleItems, multipleItemsCount, singleItemsCount) = permissionSetMap.Predicategorize(
             x => x.Value.Count > 1);
-        var singleItemsChunkWithProcessor = singleItems
-            .Chunk(singleItemsCount / ChunkCount)
-            .Select<Pairs, (Pairs pairs, Generator generator)>(chunk => (chunk, GenerateWithNoDistinct));
-        var multipleItemsChunkWithProcessor = multipleItems
-            .Chunk(multipleItemsCount / ChunkCount)
-            .Select<Pairs, (Pairs pairs, Generator generator)>(chunk => (chunk, GenerateWithDistinct));
-
-        return singleItemsChunkWithProcessor.Concat(multipleItemsChunkWithProcessor)
+        
+        return AddGenerator(singleItems, singleItemsCount, GenerateWithNoDistinct)
+            .Concat(AddGenerator(multipleItems, multipleItemsCount, GenerateWithDistinct))
             .AsParallel()
             .SelectMany(chunkWithGenerator => 
                 chunkWithGenerator.generator(chunkWithGenerator.pairs, permissionGroupOccurenceMap))
             .ToArray();
+
+        IEnumerable<(Pairs pairs, Generator generator)> AddGenerator(Pairs pairs, int count, Generator generator) =>
+            pairs.Chunk(count / ChunkCount)
+                .Select<Pairs, (Pairs pairs, Generator generator)>(chunk => (chunk, generator));
     }
 
     public static PermissionCheck[]
