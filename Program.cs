@@ -18,7 +18,7 @@ PermissionCheck[] permissionChecks = null;
 for (var i = 0; i < 1_000; i++)
     permissionChecks = Profile(
         "Calculate user permission checks",
-        () => Permussioned.CalculatePermissionChecksDistinctParallelWithPredicategorize(
+        () => Permussioned.CalculatePermissionChecksDistinctParallel(
             userPermissionSetMap,
             permissionGroupOccurenceMap
         ),
