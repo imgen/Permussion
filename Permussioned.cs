@@ -1,6 +1,7 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using PermissionGroupOccurenceMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 using PermissionSetMap = System.Collections.Generic.Dictionary<short, System.Collections.Generic.List<short>>;
 using Pairs = System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<short, System.Collections.Generic.List<short>>>;
@@ -78,6 +79,37 @@ public static class Permussioned
                 .Select<Pairs, (Pairs pairs, Generator generator)>(chunk => (chunk, generator));
     }
 
+    public static PermissionCheck[] CalculatePermissionChecksDistinctParallelFor(
+        PermissionSetMap permissionSetMap,
+        PermissionGroupOccurenceMap permissionGroupOccurenceMap)
+    {
+        var permissionSetCount = permissionSetMap.Count;
+        var permissionCheckArrays = permissionSetMap.AsParallel()
+            .Select(
+                pair => pair.Value
+                .SelectMany(x => permissionGroupOccurenceMap[x])
+                .Distinct()
+                .Select(x => new PermissionCheck(pair.Key, x))
+                .ToArray()
+            ).ToArray();
+
+        var totalSize = permissionCheckArrays.Sum(x => x.Length);
+
+        var allPermissionChecks = new PermissionCheck[totalSize];
+        var copyIndex = 0;
+        var copyIndices = new int[permissionSetCount];
+        for (var i = 0; i < permissionSetCount; i++)
+        {
+            copyIndices[i] = copyIndex;
+            copyIndex += permissionCheckArrays[i].Length;
+        }
+        Parallel.ForEach(permissionCheckArrays,
+            (permissionChecks, _, index) => 
+                Array.Copy(permissionChecks, 0, allPermissionChecks, copyIndices[index], permissionChecks.Length));
+
+        return allPermissionChecks;
+    }
+
     public static PermissionCheck[]
         CalculatePermissionChecksUnion(
             PermissionSetMap permissionSetMap,
@@ -149,4 +181,8 @@ public static class Permussioned
             ).ToArray();
 }
 
-public record PermissionCheck(short PermissionSetId1, short PermissionSetId2);
+public class PermissionCheck(short permissionSetId1, short permissionSetId2)
+{
+    public short PermissionSetId1 { get; } = permissionSetId1;
+    public short PermissionSetId2 { get; } = permissionSetId2;
+}

@@ -15,10 +15,10 @@ var (userPermissionSetMap, permissionGroupOccurenceMap) = Profile(
 
 var bestTime = TimeSpan.FromDays(1);
 PermissionCheck[] permissionChecks = null;
-for (var i = 0; i < 1_000; i++)
+for (var i = 0; i < 10_000; i++)
     permissionChecks = Profile(
         "Calculate user permission checks",
-        () => Permussioned.CalculatePermissionChecksDistinctLessParallel(
+        () => Permussioned.CalculatePermissionChecksDistinctParallelFor(
             userPermissionSetMap,
             permissionGroupOccurenceMap
         ),
@@ -29,7 +29,10 @@ for (var i = 0; i < 1_000; i++)
         }
     );
 
-var counts = permissionChecks!.GroupBy(x => x.PermissionSetId1)
+Console.WriteLine($"Generated {permissionChecks!.Length} user permission checks");
+Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)} to calculate the user permission checks");
+
+var counts = permissionChecks.GroupBy(x => x.PermissionSetId1)
         .Select(x => x.Count()).ToArray();
 var countOfMostMatches = counts.Max();
 var countOfLeastMatches = counts.Min();
@@ -37,6 +40,3 @@ var averageMatchCount = counts.Average();
 Console.WriteLine($"The max count of matches is {countOfMostMatches}");
 Console.WriteLine($"The min count of matches is {countOfLeastMatches}");
 Console.WriteLine($"The average count of matches is {averageMatchCount}");
-
-Console.WriteLine($"Generated {permissionChecks.Length} user permission checks");
-Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)} to calculate the user permission checks");
