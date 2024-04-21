@@ -14,8 +14,8 @@ var (userPermissionSetMap, permissionGroupOccurenceMap) = Profile(
 );
 
 var bestTime = TimeSpan.FromDays(1);
-PermissionCheck[] permissionChecks = null;
-for (var i = 0; i < 10_000; i++)
+PermissionCheck[]? permissionChecks = null;
+for (var i = 0; i < 10000; i++)
     permissionChecks = Profile(
         "Calculate user permission checks",
         () => Permussioned.CalculatePermissionChecksDistinctParallelFor(

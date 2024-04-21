@@ -1,10 +1,10 @@
-﻿For Permussioned.CalculatePermissionChecksDistinct, the best result is 9ms 439μs
-For Permussioned.CalculatePermissionChecksDistinctLess, the best result is 5ms 690μs
-For Permussioned.CalculatePermissionChecksDistinctParallel, the best result is 3ms 785μs
-For Permussioned.CalculatePermissionChecksDistinctParallelFor, the best result is 4ms 151μs
-For Permussioned.CalculatePermissionChecksDistinctLessParallel, the best result is 5ms 404μs
+﻿For Permussioned.CalculatePermissionChecksDistinct, the best result is 5ms 38μs
+For Permussioned.CalculatePermissionChecksDistinctLess, the best result is 5ms 59μs
+For Permussioned.CalculatePermissionChecksDistinctParallel, the best result is 858μs
+For Permussioned.CalculatePermissionChecksDistinctParallelFor, the best result is 768μs
+For Permussioned.CalculatePermissionChecksDistinctLessParallel, the best result is 792μs
 For Permussioned.CalculatePermissionChecksUnion, the best result is 28ms 352μs
-For Permussioned.CalculatePermissionChecksUnionParallel, the best result is 16ms 748μs
+For Permussioned.CalculatePermissionChecksUnionParallel, the best result is 10ms 297μs
 
 For Permussioned.CalculatePermissionChecksIntersection, the best result is 3ms 53μs
-For Permussioned.CalculatePermissionChecksIntersectionParallel, the best result is 581μs
+For Permussioned.CalculatePermissionChecksIntersectionParallel, the best result is 564μs
