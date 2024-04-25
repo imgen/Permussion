@@ -12,7 +12,7 @@ public static class MapBuilder
     public static ValueTask<PermissionSetGroup[]> LoadPermissionSetGroups() =>
         JsonSerializer.DeserializeAsync<PermissionSetGroup[]>(
             File.OpenRead("PermissionSetGroups.json")
-        );
+        )!;
 
     public static (
         PermissionSetMap UserPermissionSetMap,

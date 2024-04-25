@@ -11,6 +11,7 @@ namespace Permussion;
 public static class Permussioned
 {
     private const int ChunkCount = 64;
+    private static readonly object Locker = new();
 
     private delegate IEnumerable<PermissionCheck> Generator(
         Pairs pairs,
@@ -105,6 +106,36 @@ public static class Permussioned
 
         return allPermissionChecks;
     }
+
+    public static List<PermissionCheck> CalculatePermissionChecksDistinctLessParallelFor(
+        PermissionSetMap permissionSetMap,
+        PermissionGroupOccurenceMap permissionGroupOccurenceMap)
+    {
+        var (multipleItems, singleItems, multipleItemsCount, singleItemsCount) = permissionSetMap.Predicategorize(
+            x => x.Value.Count > 1);
+        var permissionCheckList = singleItems.Chunk(singleItemsCount / ChunkCount)
+            .AsParallel()
+            .SelectMany(
+                pairs => pairs.GenerateWithNoDistinct(permissionGroupOccurenceMap)
+            ).ToList();
+
+        var permissionCheckArrays = multipleItems.Chunk(multipleItemsCount / ChunkCount)
+            .AsParallel()
+            .Select(
+                pairs => pairs.GenerateWithDistinct(permissionGroupOccurenceMap).ToList()
+            ).ToArray();
+
+        permissionCheckList.Capacity = permissionCheckArrays.Sum(x => x.Count) + permissionCheckList.Count;
+
+        Parallel.ForEach(permissionCheckArrays,
+            (permissionChecks, _, _) =>
+            {
+                lock (Locker) permissionCheckList.AddRange(permissionChecks);
+            });
+
+        return permissionCheckList;
+    }
+
 
     public static PermissionCheck[]
         CalculatePermissionChecksUnion(

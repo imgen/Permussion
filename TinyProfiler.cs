@@ -6,7 +6,7 @@ namespace Permussion;
 
 public static class TinyProfiler
 {
-    public static T Profile<T>(string operationName, Func<T> func, Action<TimeSpan, string> printer = null)
+    public static T Profile<T>(string operationName, Func<T> func, Action<TimeSpan, string>? printer = null)
     {
         var watch = new Stopwatch();
         watch.Start();
@@ -23,14 +23,14 @@ public static class TinyProfiler
         }
     }
 
-    public static void Profile(string operationName, Action action, Action<TimeSpan, string> printer = null) =>
-        Profile<object>(operationName, () =>
+    public static void Profile(string operationName, Action action, Action<TimeSpan, string>? printer = null) =>
+        Profile<object?>(operationName, () =>
         {
             action();
             return null;
         }, printer);
 
-    public static async Task<T> ProfileAsync<T>(string operationName, Func<ValueTask<T>> func, Action<TimeSpan, string> printer = null)
+    public static async Task<T> ProfileAsync<T>(string operationName, Func<ValueTask<T>> func, Action<TimeSpan, string>? printer = null)
     {
         var watch = new Stopwatch();
         watch.Start();
@@ -47,7 +47,7 @@ public static class TinyProfiler
         }
     }
 
-    public static async Task<T> ProfileAsync<T>(string operationName, Func<ConfiguredTaskAwaitable<T>> func, Action<TimeSpan, string> printer = null)
+    public static async Task<T> ProfileAsync<T>(string operationName, Func<ConfiguredTaskAwaitable<T>> func, Action<TimeSpan, string>? printer = null)
     {
         var watch = new Stopwatch();
         watch.Start();
@@ -64,23 +64,23 @@ public static class TinyProfiler
         }
     }
 
-    public static Task ProfileAsync(string operationName, Func<Task> func, Action<TimeSpan, string> printer = null) =>
-        ProfileAsync<object>(operationName,
+    public static Task ProfileAsync(string operationName, Func<Task> func, Action<TimeSpan, string>? printer = null) =>
+        ProfileAsync<object?>(operationName,
             async () =>
             {
                 await func();
                 return null;
             }, printer);
 
-    public static Task ProfileAsync(string operationName, Func<ConfiguredTaskAwaitable> func, Action<TimeSpan, string> printer = null) =>
-        ProfileAsync<object>(operationName,
+    public static Task ProfileAsync(string operationName, Func<ConfiguredTaskAwaitable> func, Action<TimeSpan, string>? printer = null) =>
+        ProfileAsync<object?>(operationName,
             async () =>
             {
                 await func();
                 return null;
             }, printer);
 
-    private static void PrintProfileMessage(Stopwatch watch, string operationName, Action<TimeSpan, string> printer = null)
+    private static void PrintProfileMessage(Stopwatch watch, string operationName, Action<TimeSpan, string>? printer = null)
     {
         watch.Stop();
         var isDefault = printer is null;
