@@ -42,8 +42,7 @@ public static class Permussioned
                     .SelectMany(x => permissionGroupOccurenceMap[x])
                     .Distinct()
                     .ToArray();
-                var permissionSetIds = new short[occurences.Length];
-                Array.Fill(permissionSetIds, pair.Key);
+                var permissionSetIds = Enumerable.Repeat(pair.Key, occurences.Length).ToArray();
                 return (permissionSetIds, (IList<short>)occurences);
             }
         );
@@ -65,7 +64,7 @@ public static class Permussioned
             pair =>
             {
                 var occurences = permissionGroupOccurenceMap[pair.Value[0]];
-                var permissionSetIds = new short[occurences.Count];
+                var permissionSetIds = Enumerable.Repeat(pair.Key, occurences.Count).ToArray();
                 return (permissionSetIds, (IList<short>)occurences);
             }
         );
