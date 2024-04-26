@@ -20,7 +20,7 @@ IList<PermissionCheck>? permissionChecks = null;
 for (var i = 0; i < 1000; i++)
     permissionChecks = Profile(
         "Calculate user permission checks",
-        () => Permussioned.CalculatePermissionChecksIntersectionParallel(
+        () => Permussioned.CalculatePermissionChecksIntersection(
             userPermissionSetMap,
             permissionGroupOccurenceMap
         ),
