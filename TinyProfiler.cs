@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -105,5 +106,44 @@ public static class TinyProfiler
             int.Parse(timeSpan.ToString("ffffff")[3..])
         );
         return $"{minutes}m {seconds}s {milliseconds}ms {microseconds}μs";
+    }
+}
+
+public sealed class ProfileSession(string name): IDisposable
+{
+    private readonly List<ProfilePoint> _points = [new ProfilePoint(DateTimeOffset.UtcNow, name)];
+
+    public void Profile(string operation) => 
+        _points.Add(new ProfilePoint(DateTimeOffset.UtcNow, operation));
+
+    public void Print()
+    {
+        var previousPoint = _points[0];
+        Console.WriteLine($"Profile session {previousPoint.Event} begins at {previousPoint.Time:O}");
+        foreach (var profilePoint in _points[1..])
+        {
+            var timeTaken = profilePoint.Time - previousPoint.Time;
+            Console.WriteLine($"The operation {profilePoint.Event} took {TinyProfiler.FormatTimeSpan(timeTaken)}");
+            previousPoint = profilePoint;
+        }
+    }
+
+    public void Dispose() => _points.Clear();
+
+    private sealed class ProfilePoint(DateTimeOffset time, string @event)
+    {
+        public DateTimeOffset Time { get; } = time;
+        public string Event { get; } = @event;
+    }
+}
+
+public sealed class EmptyProfileSession(string name) : IDisposable
+{
+    public void Profile(string operation){}
+
+    public void Print() {}
+
+    public void Dispose()
+    {
     }
 }

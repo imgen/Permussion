@@ -110,14 +110,18 @@ public static class Permussioned
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap)
     {
+        using var profileSession = new EmptyProfileSession("DistinctLessParallelFor");
         var (multipleItems, singleItems, multipleItemsCount, singleItemsCount) = permissionSetMap.Predicategorize(
             x => x.Value.Count > 1);
+        profileSession.Profile("Categorizing by count");
         var permissionCheckArrays = AddGenerator(singleItems, singleItemsCount, GenerateWithNoDistinct)
             .Concat(AddGenerator(multipleItems, multipleItemsCount, GenerateWithDistinct))
             .AsParallel()
             .Select(chunkWithGenerator =>
                 chunkWithGenerator.generator(chunkWithGenerator.pairs, permissionGroupOccurenceMap).ToArray())
             .ToArray();
+
+        profileSession.Profile("Generating array of arrays");
 
         var allPermissionChecks = new PermissionCheck[permissionCheckArrays.Sum(x => x.Length)];
         var copyIndex = 0;
@@ -129,9 +133,15 @@ public static class Permussioned
             copyIndex += permissionCheckArrays[i].Length;
         }
 
+        profileSession.Profile("Generating copy indices");
+
         Parallel.ForEach(permissionCheckArrays,
             (permissionChecks, _, index) =>
                 permissionChecks.CopyTo(allPermissionChecks, copyIndices[index]));
+
+        profileSession.Profile("Flattening arrays");
+
+        profileSession.Print();
 
         return allPermissionChecks;
 
@@ -157,8 +167,7 @@ public static class Permussioned
             .Select(pairs =>
                 pairs.GenerateWithDistinct(permissionGroupOccurenceMap).ToArray())
             .ToArray();
-        var count = permissionCheckList.Count + permissionCheckArrays.Sum(x => x.Length);
-        permissionCheckList.Capacity = count ;
+        permissionCheckList.Capacity = permissionCheckList.Count + permissionCheckArrays.Sum(x => x.Length);
         var allPermissionChecks = permissionCheckList.GetInternalArray();
         var copyIndex = permissionCheckList.Count;
         var permissionCheckArraysCount = permissionCheckArrays.Length;
