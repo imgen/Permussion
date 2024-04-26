@@ -140,6 +140,46 @@ public static class Permussioned
                 .Select<Pairs, (Pairs pairs, Generator generator)>(chunk => (chunk, generator));
     }
 
+    public static PermissionCheck[] CalculatePermissionChecksDistinctLessParallelFor2(
+        PermissionSetMap permissionSetMap,
+        PermissionGroupOccurenceMap permissionGroupOccurenceMap)
+    {
+        var (multipleItems, singleItems, multipleItemsCount, singleItemsCount) = permissionSetMap.Predicategorize(
+            x => x.Value.Count > 1);
+        var permissionCheckList = singleItems
+            .Chunk(singleItemsCount / ChunkCount)
+            .AsParallel()
+            .SelectMany(pairs => pairs.GenerateWithNoDistinct(permissionGroupOccurenceMap))
+            .ToList();
+        var permissionCheckArrays = multipleItems
+            .Chunk(multipleItemsCount / ChunkCount)
+            .AsParallel()
+            .Select(pairs =>
+                pairs.GenerateWithDistinct(permissionGroupOccurenceMap).ToArray())
+            .ToArray();
+        var count = permissionCheckList.Count + permissionCheckArrays.Sum(x => x.Length);
+        permissionCheckList.Capacity = count ;
+        var allPermissionChecks = permissionCheckList.GetInternalArray();
+        var copyIndex = permissionCheckList.Count;
+        var permissionCheckArraysCount = permissionCheckArrays.Length;
+        var copyIndices = new int[permissionCheckArraysCount];
+        for (var i = 0; i < permissionCheckArraysCount; i++)
+        {
+            copyIndices[i] = copyIndex;
+            copyIndex += permissionCheckArrays[i].Length;
+        }
+
+        Parallel.ForEach(permissionCheckArrays,
+            (permissionChecks, _, index) =>
+                permissionChecks.CopyTo(allPermissionChecks, copyIndices[index]));
+
+        return allPermissionChecks;
+
+        IEnumerable<(Pairs pairs, Generator generator)> AddGenerator(Pairs pairs, int count, Generator generator) =>
+            pairs.Chunk(count / ChunkCount)
+                .Select<Pairs, (Pairs pairs, Generator generator)>(chunk => (chunk, generator));
+    }
+
 
     public static PermissionCheck[]
         CalculatePermissionChecksUnion(
