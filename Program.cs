@@ -22,12 +22,7 @@ for (var i = 0; i < 1000; i++)
             userPermissionSetMap,
             permissionGroupOccurenceMap
         ),
-        (timeTaken, message) =>
-        {
-            bestTime = timeTaken < bestTime ? timeTaken : bestTime;
-            Console.WriteLine(message);
-        }
-    );
+        (timeTaken, message) => bestTime = timeTaken < bestTime ? timeTaken : bestTime);
 
 Console.WriteLine($"Generated {permissionChecks!.Value.PermissionSetIds1.Length} user permission checks");
 Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)} to calculate the user permission checks");
