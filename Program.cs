@@ -1,8 +1,6 @@
 ﻿using static Permussion.TinyProfiler;
 using static Permussion.MapBuilder;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using Permussion;
 using System.Linq;
 
@@ -16,11 +14,11 @@ var (userPermissionSetMap, permissionGroupOccurenceMap) = Profile(
 );
 
 var bestTime = TimeSpan.FromDays(1);
-IList<PermissionCheck>? permissionChecks = null;
+(short[] PermissionSetIds1, short[] PermissionIds2)? permissionChecks = null;
 for (var i = 0; i < 1000; i++)
     permissionChecks = Profile(
         "Calculate user permission checks",
-        () => Permussioned.CalculatePermissionChecksDistinctLessParallelFor(
+        () => Permussioned.CalculatePermissionChecksDistinctLessParallelForTwoArrays(
             userPermissionSetMap,
             permissionGroupOccurenceMap
         ),
@@ -31,10 +29,10 @@ for (var i = 0; i < 1000; i++)
         }
     );
 
-Console.WriteLine($"Generated {permissionChecks!.Count} user permission checks");
+Console.WriteLine($"Generated {permissionChecks!.Value.PermissionSetIds1.Length} user permission checks");
 Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)} to calculate the user permission checks");
 
-var counts = permissionChecks.GroupBy(x => x.PermissionSetId1)
+var counts = permissionChecks.Value.PermissionSetIds1.GroupBy(x => x)
         .Select(x => x.Count()).ToArray();
 var countOfMostMatches = counts.Max();
 var countOfLeastMatches = counts.Min();

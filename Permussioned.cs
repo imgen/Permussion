@@ -16,6 +16,10 @@ public static class Permussioned
         Pairs pairs,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap);
 
+    private delegate IEnumerable<(short[] PermissionSetIds1, IList<short> PermissionSetIds2)> GeneratorWithTwoArrays(
+        Pairs pairs,
+        PermissionGroupOccurenceMap permissionGroupOccurenceMap);
+
     private static IEnumerable<PermissionCheck> GenerateWithDistinct(
         this Pairs pairs,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap
@@ -27,6 +31,23 @@ public static class Permussioned
                 .Select(x => new PermissionCheck(pair.Key, x))
         );
 
+    private static IEnumerable<(short[] PermissionSetIds1, IList<short> PermissionSetIds2)> GenerateWithDistinctTwoArrays(
+        this Pairs pairs,
+        PermissionGroupOccurenceMap permissionGroupOccurenceMap
+    ) =>
+        pairs.Select(
+            pair =>
+            {
+                var occurences = pair.Value
+                    .SelectMany(x => permissionGroupOccurenceMap[x])
+                    .Distinct()
+                    .ToArray();
+                var permissionSetIds = new short[occurences.Length];
+                Array.Fill(permissionSetIds, pair.Key);
+                return (permissionSetIds, (IList<short>)occurences);
+            }
+        );
+
     private static IEnumerable<PermissionCheck> GenerateWithNoDistinct(
         this Pairs pairs,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap
@@ -34,6 +55,19 @@ public static class Permussioned
         pairs.SelectMany(
             pair => permissionGroupOccurenceMap[pair.Value[0]]
                 .Select(x => new PermissionCheck(pair.Key, x))
+        );
+
+    private static IEnumerable<(short[] PermissionSetIds1, IList<short> PermissionSetIds2)> GenerateWithNoDistinctTwoArrays(
+        this Pairs pairs,
+        PermissionGroupOccurenceMap permissionGroupOccurenceMap
+    ) =>
+        pairs.Select(
+            pair =>
+            {
+                var occurences = permissionGroupOccurenceMap[pair.Value[0]];
+                var permissionSetIds = new short[occurences.Count];
+                return (permissionSetIds, (IList<short>)occurences);
+            }
         );
 
     public static PermissionCheck[] CalculatePermissionChecksDistinct(
@@ -150,6 +184,55 @@ public static class Permussioned
                 .Select<Pairs, (Pairs pairs, Generator generator)>(chunk => (chunk, generator));
     }
 
+    public static (short[] PermissionSetIds1, short[] PermissionIds2) CalculatePermissionChecksDistinctLessParallelForTwoArrays(
+        PermissionSetMap permissionSetMap,
+        PermissionGroupOccurenceMap permissionGroupOccurenceMap)
+    {
+        //using var profileSession = new EmptyProfileSession("DistinctLessParallelFor");
+        var (multipleItems, singleItems, multipleItemsCount, singleItemsCount) = permissionSetMap.Predicategorize(
+            x => x.Value.Count > 1);
+        //profileSession.Profile("Categorizing by count");
+        var permissionCheckArrays = AddGenerator(singleItems, singleItemsCount, GenerateWithNoDistinctTwoArrays)
+            .Concat(AddGenerator(multipleItems, multipleItemsCount, GenerateWithDistinctTwoArrays))
+            .AsParallel()
+            .SelectMany(chunkWithGenerator =>
+                chunkWithGenerator.generator(chunkWithGenerator.pairs, permissionGroupOccurenceMap).ToArray())
+            .ToArray();
+
+        //profileSession.Profile("Generating array of arrays");
+
+        var permissionCheckCount = permissionCheckArrays.Sum(x => x.PermissionSetIds1.Length);
+        var permissionSetIds1 = new short[permissionCheckCount];
+        var permissionSetIds2 = new short[permissionCheckCount];
+        var copyIndex = 0;
+        var permissionCheckArraysCount = permissionCheckArrays.Length;
+        var copyIndices = new int[permissionCheckArraysCount];
+        for (var i = 0; i < permissionCheckArraysCount; i++)
+        {
+            copyIndices[i] = copyIndex;
+            copyIndex += permissionCheckArrays[i].PermissionSetIds1.Length;
+        }
+
+        //profileSession.Profile("Generating copy indices");
+
+        Parallel.ForEach(permissionCheckArrays,
+            (pair, _, index) =>
+            {
+                pair.PermissionSetIds1.CopyTo(permissionSetIds1, copyIndices[index]);
+                pair.PermissionSetIds2.CopyTo(permissionSetIds2, copyIndices[index]);
+            });
+
+        //profileSession.Profile("Flattening arrays");
+
+        //profileSession.Print();
+
+        return (permissionSetIds1, permissionSetIds2);
+
+        IEnumerable<(Pairs pairs, GeneratorWithTwoArrays generator)> AddGenerator(Pairs pairs, int count, GeneratorWithTwoArrays generator) =>
+            pairs.Chunk(count / ChunkCount)
+                .Select<Pairs, (Pairs pairs, GeneratorWithTwoArrays generator)>(chunk => (chunk, generator));
+    }
+
     public static PermissionCheck[] CalculatePermissionChecksDistinctLessParallelFor2(
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap)
@@ -183,10 +266,6 @@ public static class Permussioned
                 permissionChecks.CopyTo(allPermissionChecks, copyIndices[index]));
 
         return allPermissionChecks;
-
-        IEnumerable<(Pairs pairs, Generator generator)> AddGenerator(Pairs pairs, int count, Generator generator) =>
-            pairs.Chunk(count / ChunkCount)
-                .Select<Pairs, (Pairs pairs, Generator generator)>(chunk => (chunk, generator));
     }
 
 
