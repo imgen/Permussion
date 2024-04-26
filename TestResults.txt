@@ -3,7 +3,7 @@ For Permussioned.CalculatePermissionChecksDistinctLess, the best result is 5ms 5
 For Permussioned.CalculatePermissionChecksDistinctParallel, the best result is 858μs
 For Permussioned.CalculatePermissionChecksDistinctParallelFor, the best result is 768μs
 For Permussioned.CalculatePermissionChecksDistinctLessParallel, the best result is 792μs
-For Permussioned.CalculatePermissionChecksDistinctLessParallelFor, the best result is 915μs
+For Permussioned.CalculatePermissionChecksDistinctLessParallelFor, the best result is 708μs
 For Permussioned.CalculatePermissionChecksUnion, the best result is 28ms 352μs
 For Permussioned.CalculatePermissionChecksUnionParallel, the best result is 10ms 297μs
 

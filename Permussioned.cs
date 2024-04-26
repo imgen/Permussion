@@ -113,27 +113,26 @@ public static class Permussioned
     {
         var (multipleItems, singleItems, multipleItemsCount, singleItemsCount) = permissionSetMap.Predicategorize(
             x => x.Value.Count > 1);
-        var permissionCheckList = singleItems.Chunk(singleItemsCount / ChunkCount)
+        var permissionCheckLists = AddGenerator(singleItems, singleItemsCount, GenerateWithNoDistinct)
+            .Concat(AddGenerator(multipleItems, multipleItemsCount, GenerateWithDistinct))
             .AsParallel()
-            .SelectMany(
-                pairs => pairs.GenerateWithNoDistinct(permissionGroupOccurenceMap)
-            ).ToList();
+            .Select(chunkWithGenerator =>
+                chunkWithGenerator.generator(chunkWithGenerator.pairs, permissionGroupOccurenceMap).ToList())
+            .ToArray();
 
-        var permissionCheckArrays = multipleItems.Chunk(multipleItemsCount / ChunkCount)
-            .AsParallel()
-            .Select(
-                pairs => pairs.GenerateWithDistinct(permissionGroupOccurenceMap).ToList()
-            ).ToArray();
+        var allPermissionChecks = new List<PermissionCheck>(permissionCheckLists.Sum(x => x.Count));
 
-        permissionCheckList.Capacity = permissionCheckArrays.Sum(x => x.Count) + permissionCheckList.Count;
-
-        Parallel.ForEach(permissionCheckArrays,
+        Parallel.ForEach(permissionCheckLists,
             (permissionChecks, _, _) =>
             {
-                lock (Locker) permissionCheckList.AddRange(permissionChecks);
+                lock (Locker) allPermissionChecks.AddRange(permissionChecks);
             });
 
-        return permissionCheckList;
+        return allPermissionChecks;
+
+        IEnumerable<(Pairs pairs, Generator generator)> AddGenerator(Pairs pairs, int count, Generator generator) =>
+            pairs.Chunk(count / ChunkCount)
+                .Select<Pairs, (Pairs pairs, Generator generator)>(chunk => (chunk, generator));
     }
 
 
