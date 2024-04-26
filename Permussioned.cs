@@ -11,7 +11,6 @@ namespace Permussion;
 public static class Permussioned
 {
     private const int ChunkCount = 64;
-    private static readonly object Locker = new();
 
     private delegate IEnumerable<PermissionCheck> Generator(
         Pairs pairs,
@@ -107,26 +106,32 @@ public static class Permussioned
         return allPermissionChecks;
     }
 
-    public static List<PermissionCheck> CalculatePermissionChecksDistinctLessParallelFor(
+    public static PermissionCheck[] CalculatePermissionChecksDistinctLessParallelFor(
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap)
     {
         var (multipleItems, singleItems, multipleItemsCount, singleItemsCount) = permissionSetMap.Predicategorize(
             x => x.Value.Count > 1);
-        var permissionCheckLists = AddGenerator(singleItems, singleItemsCount, GenerateWithNoDistinct)
+        var permissionCheckArrays = AddGenerator(singleItems, singleItemsCount, GenerateWithNoDistinct)
             .Concat(AddGenerator(multipleItems, multipleItemsCount, GenerateWithDistinct))
             .AsParallel()
             .Select(chunkWithGenerator =>
-                chunkWithGenerator.generator(chunkWithGenerator.pairs, permissionGroupOccurenceMap).ToList())
+                chunkWithGenerator.generator(chunkWithGenerator.pairs, permissionGroupOccurenceMap).ToArray())
             .ToArray();
 
-        var allPermissionChecks = new List<PermissionCheck>(permissionCheckLists.Sum(x => x.Count));
+        var allPermissionChecks = new PermissionCheck[permissionCheckArrays.Sum(x => x.Length)];
+        var copyIndex = 0;
+        var permissionCheckArraysCount = permissionCheckArrays.Length;
+        var copyIndices = new int[permissionCheckArraysCount];
+        for (var i = 0; i < permissionCheckArraysCount; i++)
+        {
+            copyIndices[i] = copyIndex;
+            copyIndex += permissionCheckArrays[i].Length;
+        }
 
-        Parallel.ForEach(permissionCheckLists,
-            (permissionChecks, _, _) =>
-            {
-                lock (Locker) allPermissionChecks.AddRange(permissionChecks);
-            });
+        Parallel.ForEach(permissionCheckArrays,
+            (permissionChecks, _, index) =>
+                permissionChecks.CopyTo(allPermissionChecks, copyIndices[index]));
 
         return allPermissionChecks;
 
