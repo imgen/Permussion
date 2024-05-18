@@ -5,12 +5,8 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<Platforms>AnyCPU;x64</Platforms>
+		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<None Remove="Permussion.exe" />
-		<None Remove="Permussion.zip" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<None Update="PermissionSetGroups.json">
