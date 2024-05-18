@@ -38,12 +38,19 @@ public static class Permussioned
         pairs.Select(
             pair =>
             {
-                var occurences = pair.Value
-                    .SelectMany(x => permissionGroupOccurenceMap[x])
-                    .Distinct()
-                    .ToArray();
-                var permissionSetIds = Enumerable.Repeat(pair.Key, occurences.Length).ToArray();
-                return (permissionSetIds, (IList<short>)occurences);
+                var permissionSetIdList = pair.Value;
+                int capacity = pair.Value.Sum(x => permissionGroupOccurenceMap[x].Count);
+                var hash = new ShortHashSet(capacity);
+                for (int i = 0; i < permissionSetIdList.Count; i++)
+                {
+                    var occurences = permissionGroupOccurenceMap[permissionSetIdList[i]];
+                    for (int j = 0; j < occurences.Count; j++) 
+                        hash.Add(occurences[j]);
+                }
+
+                var allOccurences = hash.ToArray();
+                var permissionSetIds = Enumerable.Repeat(pair.Key, allOccurences.Length).ToArray();
+                return (permissionSetIds, (IList<short>)allOccurences);
             }
         );
 
