@@ -54,15 +54,6 @@ public static class Permussioned
             }
         );
 
-    private static IEnumerable<PermissionCheck> GenerateWithNoDistinct(
-        this Pairs pairs,
-        PermissionGroupOccurenceMap permissionGroupOccurenceMap
-    ) =>
-        pairs.SelectMany(
-            pair => permissionGroupOccurenceMap[pair.Value[0]]
-                .Select(x => new PermissionCheck(pair.Key, x))
-        );
-
     private static IEnumerable<(short[] PermissionSetIds1, IList<short> PermissionSetIds2)> GenerateWithNoDistinctTwoArrays(
         this Pairs pairs,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap
@@ -74,6 +65,15 @@ public static class Permussioned
                 var permissionSetIds = Enumerable.Repeat(pair.Key, occurences.Count).ToArray();
                 return (permissionSetIds, (IList<short>)occurences);
             }
+        );
+
+    private static IEnumerable<PermissionCheck> GenerateWithNoDistinct(
+        this Pairs pairs,
+        PermissionGroupOccurenceMap permissionGroupOccurenceMap
+    ) =>
+        pairs.SelectMany(
+            pair => permissionGroupOccurenceMap[pair.Value[0]]
+                .Select(x => new PermissionCheck(pair.Key, x))
         );
 
     public static PermissionCheck[] CalculatePermissionChecksDistinct(
@@ -194,7 +194,7 @@ public static class Permussioned
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap)
     {
-        //using var profileSession = new EmptyProfileSession("DistinctLessParallelFor");
+        //using var profileSession = new ProfileSession("DistinctLessParallelFor");
         var (multipleItems, singleItems, multipleItemsCount, singleItemsCount) = permissionSetMap.Predicategorize(
             x => x.Value.Count > 1);
         //profileSession.Profile("Categorizing by count");
@@ -282,11 +282,16 @@ public static class Permussioned
         permissionSetMap.SelectMany(pair =>
         {
             var pgIds = pair.Value;
-            return pgIds.Skip(1).Aggregate(
-                permissionGroupOccurenceMap[pgIds[0]],
-                (union, pgId) =>
-                    union.Union(permissionGroupOccurenceMap[pgId]).ToList()
-            ).Select(x => new PermissionCheck(pair.Key, x));
+            var union = permissionGroupOccurenceMap[pgIds[0]];
+            for (var i = 1; i < pgIds.Count; i++) 
+                union = union.Union(permissionGroupOccurenceMap[pgIds[i]]).ToList();
+            var permissionChecks = new PermissionCheck[union.Count];
+            for (var i = 0; i < union.Count; i++)
+            {
+                permissionChecks[i] = new PermissionCheck(pair.Key, union[i]);
+            }
+
+            return permissionChecks;
         }).ToArray();
 
     public static PermissionCheck[]
@@ -299,11 +304,16 @@ public static class Permussioned
                     permissionSetMapChunk.SelectMany(pair =>
                     {
                         var pgIds = pair.Value;
-                        return pgIds.Skip(1).Aggregate(
-                            permissionGroupOccurenceMap[pgIds[0]],
-                            (union, pgId) =>
-                                union.Union(permissionGroupOccurenceMap[pgId]).ToList()
-                        ).Select(x => new PermissionCheck(pair.Key, x));
+                        var union = permissionGroupOccurenceMap[pgIds[0]];
+                        for (var i = 1; i < pgIds.Count; i++)
+                            union = union.Union(permissionGroupOccurenceMap[pgIds[i]]).ToList();
+                        var permissionChecks = new PermissionCheck[union.Count];
+                        for (var i = 0; i < union.Count; i++)
+                        {
+                            permissionChecks[i] = new PermissionCheck(pair.Key, union[i]);
+                        }
+
+                        return permissionChecks;
                     })
             ).ToArray();
 
@@ -317,11 +327,16 @@ public static class Permussioned
         permissionSetMap.SelectMany(pair =>
         {
             var pgIds = pair.Value;
-            return pgIds.Skip(1).Aggregate(
-                permissionGroupOccurenceMap[pgIds[0]],
-                (intersection, pgId) =>
-                    intersection.Intersect(permissionGroupOccurenceMap[pgId]).ToList()
-            ).Select(x => new PermissionCheck(pair.Key, x));
+            var intersection = permissionGroupOccurenceMap[pgIds[0]];
+            for (var i = 1; i < pgIds.Count; i++)
+                intersection = intersection.Intersect(permissionGroupOccurenceMap[pgIds[i]]).ToList();
+            var permissionChecks = new PermissionCheck[intersection.Count];
+            for (var i = 0; i < intersection.Count; i++)
+            {
+                permissionChecks[i] = new PermissionCheck(pair.Key, intersection[i]);
+            }
+
+            return permissionChecks;
         }).ToArray();
 
     /// <summary>
@@ -337,11 +352,16 @@ public static class Permussioned
                     permissionSetMapChunk.SelectMany(pair =>
                     {
                         var pgIds = pair.Value;
-                        return pgIds.Skip(1).Aggregate(
-                            permissionGroupOccurenceMap[pgIds[0]],
-                            (intersection, pgId) =>
-                                intersection.Intersect(permissionGroupOccurenceMap[pgId]).ToList()
-                        ).Select(x => new PermissionCheck(pair.Key, x));
+                        var intersection = permissionGroupOccurenceMap[pgIds[0]];
+                        for (var i = 1; i < pgIds.Count; i++)
+                            intersection = intersection.Intersect(permissionGroupOccurenceMap[pgIds[i]]).ToList();
+                        var permissionChecks = new PermissionCheck[intersection.Count];
+                        for (var i = 0; i < intersection.Count; i++)
+                        {
+                            permissionChecks[i] = new PermissionCheck(pair.Key, intersection[i]);
+                        }
+
+                        return permissionChecks;
                     })
             ).ToArray();
 }
