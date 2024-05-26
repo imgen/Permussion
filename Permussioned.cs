@@ -55,8 +55,10 @@ public static class Permussioned
                 }
                 var hash = new ShortHashSet(capacity);
                 hash.AddAll(permissionGroupOccurenceMap[permissionSetIdList[maxOccurenceCountIndex]]);
-                for (int i = 0; i < permissionSetIdList.Count && i != maxOccurenceCountIndex; i++)
+                for (int i = 0; i < permissionSetIdList.Count; i++)
                 {
+                    if (i == maxOccurenceCountIndex)
+                        continue;
                     var occurences = permissionGroupOccurenceMap[permissionSetIdList[i]];
                     for (int j = 0; j < occurences.Count; j++) 
                         hash.Add(occurences[j]);
