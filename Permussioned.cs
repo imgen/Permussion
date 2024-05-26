@@ -39,9 +39,23 @@ public static class Permussioned
             pair =>
             {
                 var permissionSetIdList = pair.Value;
-                int capacity = pair.Value.Sum(x => permissionGroupOccurenceMap[x].Count);
+                int capacity = permissionGroupOccurenceMap[permissionSetIdList[0]].Count;
+                int maxOccurenceCount = capacity;
+                int maxOccurenceCountIndex = 0;
+                for (var i = 1; i < permissionSetIdList.Count; i++)
+                {
+                    var count = permissionGroupOccurenceMap[permissionSetIdList[i]].Count;
+                    if (count > maxOccurenceCount)
+                    {
+                        maxOccurenceCount = count;
+                        maxOccurenceCountIndex = i;
+                    }
+
+                    capacity += count;
+                }
                 var hash = new ShortHashSet(capacity);
-                for (int i = 0; i < permissionSetIdList.Count; i++)
+                hash.AddAll(permissionGroupOccurenceMap[permissionSetIdList[maxOccurenceCountIndex]]);
+                for (int i = 0; i < permissionSetIdList.Count && i != maxOccurenceCountIndex; i++)
                 {
                     var occurences = permissionGroupOccurenceMap[permissionSetIdList[i]];
                     for (int j = 0; j < occurences.Count; j++) 
@@ -194,7 +208,7 @@ public static class Permussioned
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap)
     {
-        //using var profileSession = new ProfileSession("DistinctLessParallelFor");
+        //using var profileSession = new ProfileSession("DistinctLessParallelForTwoArrays");
         var (multipleItems, singleItems, multipleItemsCount, singleItemsCount) = permissionSetMap.Predicategorize(
             x => x.Value.Count > 1);
         //profileSession.Profile("Categorizing by count");

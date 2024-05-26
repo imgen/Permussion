@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -66,7 +67,6 @@ public class ShortHashSet
     public bool Add(short value)
     {
         var entries = _entries;
-        Debug.Assert(entries != null, "expected entries to be non-null");
 
         int hashCode = value;
 
@@ -109,6 +109,53 @@ public class ShortHashSet
         bucket = index + 1;
 
         return true;
+    }
+
+    public void AddAll(IList<short> values)
+    {
+        var entries = _entries;
+
+        for (var idx = 0; idx < values.Count; idx++)
+        {
+            var value = values[idx];
+            int hashCode = value;
+
+            ref var bucket = ref Unsafe.NullRef<int>();
+
+            bucket = ref GetBucketRef(hashCode);
+            var i = bucket - 1; // Value in _buckets is 1-based
+
+            // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
+            while (i >= 0)
+            {
+                ref var entry = ref entries[i];
+                i = entry.Next;
+            }
+            int index;
+            if (_freeCount > 0)
+            {
+                index = _freeList;
+                _freeCount--;
+                _freeList = StartOfFreeList - entries[_freeList].Next;
+            }
+            else
+            {
+                var count = _count;
+                if (count == entries.Length)
+                {
+                    Resize();
+                    bucket = ref GetBucketRef(hashCode);
+                }
+                index = count;
+                _count = count + 1;
+                entries = _entries;
+            }
+
+            ref var entry2 = ref entries![index];
+            entry2.Value = value;
+            entry2.Next = bucket - 1; // Value in _buckets is 1-based
+            bucket = index + 1;
+        }
     }
 
     public int Count => _count - _freeCount;
