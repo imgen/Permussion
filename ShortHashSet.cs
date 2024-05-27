@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Permussion;
@@ -52,27 +51,13 @@ public class ShortHashSet
         return ref buckets[HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, _fastModMultiplier)];
     }
 
-    public void Clear()
-    {
-        var count = _count;
-        if (count > 0)
-        {
-            Array.Clear(_buckets!);
-            _count = 0;
-            _freeList = -1;
-            _freeCount = 0;
-            Array.Clear(_entries!, 0, count);
-        }
-    }
     public bool Add(short value)
     {
-        var entries = _entries;
+        var entries = _entries!;
 
         int hashCode = value;
 
-        ref var bucket = ref Unsafe.NullRef<int>();
-
-        bucket = ref GetBucketRef(hashCode);
+        ref var bucket = ref GetBucketRef(hashCode);
         var i = bucket - 1; // Value in _buckets is 1-based
 
         // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
@@ -92,14 +77,7 @@ public class ShortHashSet
         }
         else
         {
-            var count = _count;
-            if (count == entries.Length)
-            {
-                Resize();
-                bucket = ref GetBucketRef(hashCode);
-            }
-            index = count;
-            _count = count + 1;
+            index = _count++;
             entries = _entries;
         }
 
@@ -113,16 +91,14 @@ public class ShortHashSet
 
     public void AddAll(IList<short> values)
     {
-        var entries = _entries;
+        var entries = _entries!;
 
         for (var idx = 0; idx < values.Count; idx++)
         {
             var value = values[idx];
             int hashCode = value;
 
-            ref var bucket = ref Unsafe.NullRef<int>();
-
-            bucket = ref GetBucketRef(hashCode);
+            ref var bucket = ref GetBucketRef(hashCode);
             var i = bucket - 1; // Value in _buckets is 1-based
 
             // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
@@ -140,14 +116,7 @@ public class ShortHashSet
             }
             else
             {
-                var count = _count;
-                if (count == entries.Length)
-                {
-                    Resize();
-                    bucket = ref GetBucketRef(hashCode);
-                }
-                index = count;
-                _count = count + 1;
+                index = _count++;
                 entries = _entries;
             }
 
@@ -182,33 +151,6 @@ public class ShortHashSet
         var array = new short[Count];
         CopyTo(array);
         return array;
-    }
-
-    private void Resize() => Resize(HashHelpers.ExpandPrime(_count));
-
-    private void Resize(int newSize)
-    {
-        var entries = new Entry[newSize];
-
-        var count = _count;
-        Array.Copy(_entries!, entries, count);
-
-        // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
-        _buckets = new int[newSize];
-
-        _fastModMultiplier = HashHelpers.GetFastModMultiplier((uint)newSize);
-        for (var i = 0; i < count; i++)
-        {
-            ref var entry = ref entries[i];
-            if (entry.Next >= -1)
-            {
-                ref var bucket = ref GetBucketRef(entry.Value);
-                entry.Next = bucket - 1; // Value in _buckets is 1-based
-                bucket = i + 1;
-            }
-        }
-
-        _entries = entries;
     }
 
     private struct Entry
@@ -254,50 +196,25 @@ public static class HashHelpers
         1674319, 2009191, 2411033, 2893249, 3471899, 4166287, 4999559, 5999471, 7199369
     ];
 
-    public static bool IsPrime(int candidate)
-    {
-        if ((candidate & 1) != 0)
-        {
-            int limit = (int)Math.Sqrt(candidate);
-            for (int divisor = 3; divisor <= limit; divisor += 2)
-            {
-                if ((candidate % divisor) == 0)
-                    return false;
-            }
-            return true;
-        }
-        return candidate == 2;
-    }
-
     public static int GetPrime(int min)
     {
-        foreach (int prime in Primes)
+        foreach (var prime in Primes)
         {
             if (prime >= min)
                 return prime;
         }
-
-        // Outside of our predefined table. Compute the hard way.
-        for (int i = (min | 1); i < int.MaxValue; i += 2)
-        {
-            if (IsPrime(i) && ((i - 1) % HashPrime != 0))
-                return i;
-        }
-        return min;
+        return 0;
     }
 
     // Returns size of hashtable to grow to.
     public static int ExpandPrime(int oldSize)
     {
-        int newSize = 2 * oldSize;
+        var newSize = 2 * oldSize;
 
         // Allow the hashtables to grow to maximum possible size (~2G elements) before encountering capacity overflow.
         // Note that this check works even when _items.Length overflowed thanks to the (uint) cast
         if ((uint)newSize > MaxPrimeArrayLength && MaxPrimeArrayLength > oldSize)
-        {
-            Debug.Assert(MaxPrimeArrayLength == GetPrime(MaxPrimeArrayLength), "Invalid MaxPrimeArrayLength");
             return MaxPrimeArrayLength;
-        }
 
         return GetPrime(newSize);
     }
@@ -310,18 +227,9 @@ public static class HashHelpers
     /// <summary>Performs a mod operation using the multiplier pre-computed with <see cref="GetFastModMultiplier"/>.</summary>
     /// <remarks>This should only be used on 64-bit.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static uint FastMod(uint value, uint divisor, ulong multiplier)
-    {
-        // We use modified Daniel Lemire's fastmod algorithm (https://github.com/dotnet/runtime/pull/406),
-        // which allows to avoid the long multiplication if the divisor is less than 2**31.
-        Debug.Assert(divisor <= int.MaxValue);
-
+    public static uint FastMod(uint value, uint divisor, ulong multiplier) =>
         // This is equivalent of (uint)Math.BigMul(multiplier * value, divisor, out _). This version
         // is faster than BigMul currently because we only need the high bits.
-        uint highbits = (uint)(((((multiplier * value) >> 32) + 1) * divisor) >> 32);
-
-        Debug.Assert(highbits == value % divisor);
-        return highbits;
-    }
+        (uint)(((((multiplier * value) >> 32) + 1) * divisor) >> 32);
 }
 

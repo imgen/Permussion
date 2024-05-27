@@ -39,9 +39,9 @@ public static class Permussioned
             pair =>
             {
                 var permissionSetIdList = pair.Value;
-                int capacity = permissionGroupOccurenceMap[permissionSetIdList[0]].Count;
-                int maxOccurenceCount = capacity;
-                int maxOccurenceCountIndex = 0;
+                var capacity = permissionGroupOccurenceMap[permissionSetIdList[0]].Count;
+                var maxOccurenceCount = capacity;
+                var maxOccurenceCountIndex = 0;
                 for (var i = 1; i < permissionSetIdList.Count; i++)
                 {
                     var count = permissionGroupOccurenceMap[permissionSetIdList[i]].Count;
@@ -55,12 +55,12 @@ public static class Permussioned
                 }
                 var hash = new ShortHashSet(capacity);
                 hash.AddAll(permissionGroupOccurenceMap[permissionSetIdList[maxOccurenceCountIndex]]);
-                for (int i = 0; i < permissionSetIdList.Count; i++)
+                for (var i = 0; i < permissionSetIdList.Count; i++)
                 {
                     if (i == maxOccurenceCountIndex)
                         continue;
                     var occurences = permissionGroupOccurenceMap[permissionSetIdList[i]];
-                    for (int j = 0; j < occurences.Count; j++) 
+                    for (var j = 0; j < occurences.Count; j++) 
                         hash.Add(occurences[j]);
                 }
 
