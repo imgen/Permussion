@@ -27,7 +27,7 @@ public static class Permussioned
         pairs.SelectMany(
             pair => pair.Value
                 .SelectMany(x => permissionGroupOccurenceMap[x])
-                .Distinct()
+                .DistinctWithShortHashSet()
                 .Select(x => new PermissionCheck(pair.Key, x))
         );
 
@@ -40,32 +40,19 @@ public static class Permussioned
             {
                 var permissionSetIdList = pair.Value;
                 var capacity = permissionGroupOccurenceMap[permissionSetIdList[0]].Count;
-                var maxOccurenceCount = capacity;
-                var maxOccurenceCountIndex = 0;
+                for (var i = 1; i < permissionSetIdList.Count; i++) 
+                    capacity += permissionGroupOccurenceMap[permissionSetIdList[i]].Count;
+                var hash = new ShortHashSet(capacity);
+                hash.AddAll(permissionGroupOccurenceMap[permissionSetIdList[0]]);
                 for (var i = 1; i < permissionSetIdList.Count; i++)
                 {
-                    var count = permissionGroupOccurenceMap[permissionSetIdList[i]].Count;
-                    if (count > maxOccurenceCount)
-                    {
-                        maxOccurenceCount = count;
-                        maxOccurenceCountIndex = i;
-                    }
-
-                    capacity += count;
-                }
-                var hash = new ShortHashSet(capacity);
-                hash.AddAll(permissionGroupOccurenceMap[permissionSetIdList[maxOccurenceCountIndex]]);
-                for (var i = 0; i < permissionSetIdList.Count; i++)
-                {
-                    if (i == maxOccurenceCountIndex)
-                        continue;
                     var occurences = permissionGroupOccurenceMap[permissionSetIdList[i]];
                     for (var j = 0; j < occurences.Count; j++) 
                         hash.Add(occurences[j]);
                 }
 
                 var allOccurences = hash.ToArray();
-                var permissionSetIds = Enumerable.Repeat(pair.Key, allOccurences.Length).ToArray();
+                var permissionSetIds = System.Linq.Enumerable.Repeat(pair.Key, allOccurences.Length).ToArray();
                 return (permissionSetIds, (IList<short>)allOccurences);
             }
         );
@@ -78,7 +65,7 @@ public static class Permussioned
             pair =>
             {
                 var occurences = permissionGroupOccurenceMap[pair.Value[0]];
-                var permissionSetIds = Enumerable.Repeat(pair.Key, occurences.Count).ToArray();
+                var permissionSetIds = System.Linq.Enumerable.Repeat(pair.Key, occurences.Count).ToArray();
                 return (permissionSetIds, (IList<short>)occurences);
             }
         );
@@ -95,7 +82,7 @@ public static class Permussioned
     public static PermissionCheck[] CalculatePermissionChecksDistinct(
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap) =>
-        permissionSetMap.GenerateWithDistinct(permissionGroupOccurenceMap).ToArray();
+        [.. permissionSetMap.GenerateWithDistinct(permissionGroupOccurenceMap)];
 
     public static PermissionCheck[] CalculatePermissionChecksDistinctLess(
         PermissionSetMap permissionSetMap,
@@ -103,8 +90,12 @@ public static class Permussioned
     {
         var (multipleItems, singleItems, _, _) = permissionSetMap.Predicategorize(
             x => x.Value.Count > 1);
-        return singleItems.GenerateWithNoDistinct(permissionGroupOccurenceMap)
-            .Concat(multipleItems.GenerateWithDistinct(permissionGroupOccurenceMap)).ToArray();
+        return
+        [
+            .. singleItems.GenerateWithNoDistinct(permissionGroupOccurenceMap)
+,
+            .. multipleItems.GenerateWithDistinct(permissionGroupOccurenceMap),
+        ];
     }
 
     public static PermissionCheck[] CalculatePermissionChecksDistinctParallel(
@@ -139,7 +130,8 @@ public static class Permussioned
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap)
     {
-        var permissionCheckArrays = permissionSetMap.Chunk(permissionSetMap.Count / ChunkCount)
+        var permissionCheckArrays = permissionSetMap
+            .Chunk(permissionSetMap.Count / ChunkCount)
             .AsParallel()
             .Select(
                 pairs => pairs.GenerateWithDistinct(permissionGroupOccurenceMap).ToArray()
@@ -206,7 +198,7 @@ public static class Permussioned
                 .Select<Pairs, (Pairs pairs, Generator generator)>(chunk => (chunk, generator));
     }
 
-    public static (short[] PermissionSetIds1, short[] PermissionIds2) CalculatePermissionChecksDistinctLessParallelForTwoArrays(
+    public static (short[] PermissionSetIds1, short[] PermissionSetIds2) CalculatePermissionChecksDistinctLessParallelForTwoArrays(
         PermissionSetMap permissionSetMap,
         PermissionGroupOccurenceMap permissionGroupOccurenceMap)
     {
@@ -295,12 +287,12 @@ public static class Permussioned
         CalculatePermissionChecksUnion(
             PermissionSetMap permissionSetMap,
             PermissionGroupOccurenceMap permissionGroupOccurenceMap) =>
-        permissionSetMap.SelectMany(pair =>
+        [.. permissionSetMap.SelectMany(pair =>
         {
             var pgIds = pair.Value;
             var union = permissionGroupOccurenceMap[pgIds[0]];
             for (var i = 1; i < pgIds.Count; i++) 
-                union = union.Union(permissionGroupOccurenceMap[pgIds[i]]).ToList();
+                union = [.. union.Union(permissionGroupOccurenceMap[pgIds[i]])];
             var permissionChecks = new PermissionCheck[union.Count];
             for (var i = 0; i < union.Count; i++)
             {
@@ -308,7 +300,7 @@ public static class Permussioned
             }
 
             return permissionChecks;
-        }).ToArray();
+        })];
 
     public static PermissionCheck[]
         CalculatePermissionChecksUnionParallel(
@@ -322,7 +314,7 @@ public static class Permussioned
                         var pgIds = pair.Value;
                         var union = permissionGroupOccurenceMap[pgIds[0]];
                         for (var i = 1; i < pgIds.Count; i++)
-                            union = union.Union(permissionGroupOccurenceMap[pgIds[i]]).ToList();
+                            union = [.. union.Union(permissionGroupOccurenceMap[pgIds[i]])];
                         var permissionChecks = new PermissionCheck[union.Count];
                         for (var i = 0; i < union.Count; i++)
                         {
@@ -340,12 +332,12 @@ public static class Permussioned
         CalculatePermissionChecksIntersection(
             PermissionSetMap permissionSetMap,
             PermissionGroupOccurenceMap permissionGroupOccurenceMap) =>
-        permissionSetMap.SelectMany(pair =>
+        [.. permissionSetMap.SelectMany(pair =>
         {
             var pgIds = pair.Value;
             var intersection = permissionGroupOccurenceMap[pgIds[0]];
             for (var i = 1; i < pgIds.Count; i++)
-                intersection = intersection.Intersect(permissionGroupOccurenceMap[pgIds[i]]).ToList();
+                intersection = [.. intersection.Intersect(permissionGroupOccurenceMap[pgIds[i]])];
             var permissionChecks = new PermissionCheck[intersection.Count];
             for (var i = 0; i < intersection.Count; i++)
             {
@@ -353,7 +345,7 @@ public static class Permussioned
             }
 
             return permissionChecks;
-        }).ToArray();
+        })];
 
     /// <summary>
     /// This is different logic (without using PermissionGroup idea). The idea becomes from a Union to Intersection
@@ -370,7 +362,7 @@ public static class Permussioned
                         var pgIds = pair.Value;
                         var intersection = permissionGroupOccurenceMap[pgIds[0]];
                         for (var i = 1; i < pgIds.Count; i++)
-                            intersection = intersection.Intersect(permissionGroupOccurenceMap[pgIds[i]]).ToList();
+                            intersection = [.. intersection.Intersect(permissionGroupOccurenceMap[pgIds[i]])];
                         var permissionChecks = new PermissionCheck[intersection.Count];
                         for (var i = 0; i < intersection.Count; i++)
                         {

@@ -13,8 +13,8 @@ public static class LinqExtensions
         this IEnumerable<T> source,
         Predicate<T> predicate)
     {
-        var positiveItems = Enumerable.Empty<T>();
-        var negativeItems = Enumerable.Empty<T>();
+        var positiveItems = System.Linq.Enumerable.Empty<T>();
+        var negativeItems = System.Linq.Enumerable.Empty<T>();
         int positiveItemsCount = 0, negativeItemsCount = 0;
         foreach (var item in source)
             if (predicate(item))
@@ -29,5 +29,25 @@ public static class LinqExtensions
             }
 
         return (positiveItems, negativeItems, positiveItemsCount, negativeItemsCount);
+    }
+
+    public static IEnumerable<T> DistinctWithHashSet<T>(this IEnumerable<T> source)
+    {
+        var hashSet = new HashSet<T>();
+#pragma warning disable S3267
+        foreach (var item in source)
+#pragma warning restore S3267
+            if (hashSet.Add(item))
+                yield return item;
+    }
+
+    public static IEnumerable<short> DistinctWithShortHashSet(this IEnumerable<short> source)
+    {
+        var hashSet = new HashSet<short>();
+#pragma warning disable S3267
+        foreach (var item in source)
+#pragma warning restore S3267
+            if (hashSet.Add(item))
+                yield return item;
     }
 }
