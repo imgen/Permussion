@@ -27,6 +27,15 @@ for (var i = 0; i < 1000; i++)
 Console.WriteLine($"Generated {permissionChecks!.Length} user permission checks");
 Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)} to calculate the user permission checks");
 
+var counts = permissionChecks.GroupBy(x => x.PermissionSetId1)
+        .Select(x => x.Count()).ToArray();
+var countOfMostMatches = counts.Max();
+var countOfLeastMatches = counts.Min();
+var averageMatchCount = counts.Average();
+Console.WriteLine($"The max count of matches is {countOfMostMatches}");
+Console.WriteLine($"The min count of matches is {countOfLeastMatches}");
+Console.WriteLine($"The average count of matches is {averageMatchCount}");
+
 //short[]? permissionChecks = null;
 //for (var i = 0; i < 1000; i++)
 //    permissionChecks = Profile(
@@ -41,11 +50,3 @@ Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)
 //Console.WriteLine($"Generated {permissionChecks!.Length} user permission checks");
 //Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)} to calculate the user permission checks");
 
-//var counts = permissionChecks.GroupBy(x => x.PermissionSetId1)
-//        .Select(x => x.Count()).ToArray();
-//var countOfMostMatches = counts.Max();
-//var countOfLeastMatches = counts.Min();
-//var averageMatchCount = counts.Average();
-//Console.WriteLine($"The max count of matches is {countOfMostMatches}");
-//Console.WriteLine($"The min count of matches is {countOfLeastMatches}");
-//Console.WriteLine($"The average count of matches is {averageMatchCount}");
