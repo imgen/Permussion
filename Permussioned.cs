@@ -27,7 +27,7 @@ public static class Permussioned
         pairs.SelectMany(
             pair => pair.Value
                 .SelectMany(x => permissionGroupOccurenceMap[x])
-                .DistinctWithShortHashSet()
+                .ToHashSet()
                 .Select(x => new PermissionCheck(pair.Key, x))
         );
 
@@ -281,7 +281,6 @@ public static class Permussioned
 
         return allPermissionChecks;
     }
-
 
     public static PermissionCheck[]
         CalculatePermissionChecksUnion(

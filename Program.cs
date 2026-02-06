@@ -14,32 +14,32 @@ var (userPermissionSetMap, permissionGroupOccurenceMap) = Profile(
 );
 
 var bestTime = TimeSpan.FromDays(1);
-//PermissionCheck[]? permissionChecks = null;
-//for (var i = 0; i < 1000; i++)
-//    permissionChecks = Profile(
-//        "Calculate user permission checks",
-//        () => Permussioned.CalculatePermissionChecksDistinctParallelFor(
-//            userPermissionSetMap,
-//            permissionGroupOccurenceMap
-//        ),
-//        (timeTaken, message) => bestTime = timeTaken < bestTime ? timeTaken : bestTime);
-
-//Console.WriteLine($"Generated {permissionChecks!.Length} user permission checks");
-//Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)} to calculate the user permission checks");
-
-short[]? permissionChecks = null;
+PermissionCheck[]? permissionChecks = null;
 for (var i = 0; i < 1000; i++)
     permissionChecks = Profile(
         "Calculate user permission checks",
-        () => Permussioned.CalculatePermissionChecksDistinctLessParallelForTwoArrays(
+        () => Permussioned.CalculatePermissionChecksDistinctParallelFor(
             userPermissionSetMap,
             permissionGroupOccurenceMap
         ),
-        (timeTaken, message) => bestTime = timeTaken < bestTime ? timeTaken : bestTime
-    ).PermissionSetIds1;
+        (timeTaken, message) => bestTime = timeTaken < bestTime ? timeTaken : bestTime);
 
 Console.WriteLine($"Generated {permissionChecks!.Length} user permission checks");
 Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)} to calculate the user permission checks");
+
+//short[]? permissionChecks = null;
+//for (var i = 0; i < 1000; i++)
+//    permissionChecks = Profile(
+//        "Calculate user permission checks",
+//        () => Permussioned.CalculatePermissionChecksDistinctLessParallelForTwoArrays(
+//            userPermissionSetMap,
+//            permissionGroupOccurenceMap
+//        ),
+//        (timeTaken, message) => bestTime = timeTaken < bestTime ? timeTaken : bestTime
+//    ).PermissionSetIds1;
+
+//Console.WriteLine($"Generated {permissionChecks!.Length} user permission checks");
+//Console.WriteLine($"At least it will take {TinyProfiler.FormatTimeSpan(bestTime)} to calculate the user permission checks");
 
 //var counts = permissionChecks.GroupBy(x => x.PermissionSetId1)
 //        .Select(x => x.Count()).ToArray();
